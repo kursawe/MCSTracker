@@ -1,0 +1,15 @@
+Copyright 2016 Jochen Kursawe. See the LICENSE file at the top-level directory 
+of this distribution and at https://github.com/kursawe/MCSTracker/LICENSE.
+
+
+To run all tests type 
+
+nosetests -a level=weekly -a level=standard 
+
+To run all tests in parallel type
+
+nosetests -a level=weekly -a level=standard --processes=4 --process-timeout=80000 
+
+To run only quick tests type
+
+nosetests -a level=standard

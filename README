@@ -1,0 +1,34 @@
+Copyright 2016 Jochen Kursawe. See the LICENSE file at the top-level directory 
+of this distribution and at https://github.com/kursawe/MCSTracker/LICENSE.
+
+Welcome to the repository for our cell tracking project! Currently, the repository contains four folders:
+
+./src This folder contains python modules and packages that we have build for the project. There are class definitions for meshes, elements, and nodes, and functions to draw meshes with different properties. Tracking algorithms are in the src/tracking package.
+
+./test This folder contains tests for the modules and packages in /src. We try to employ test driven development, and hence there should be a unit test for most units in the src folder. Evaluation of tracking algorithms is also done in tests: Since we know the matching that the algorithm should find, we apply the alogorithm and check the output in standard python unit tests.
+
+./docs This folder contains a structure to autogenerate html documentation from our code. This is still experimental, but you should be able to generate a little website for this project by going into this folder and typing
+    make api
+    make html 
+
+./scripts Old scripts that we previously wrote for this project, i.e. for identifying vertices in segmented images, testing libbi, etc.
+
+Installation:
+------------
+
+The code itself: In order to access the modules and packages from your python interpreter you will need to add the ./src folder to your PYTHONPATH environment variable. In linux you can do that by adding the line
+
+    export PYTHONPATH="$PYTHONPATH:/path/to/project/src"
+
+to your ~/.bashrc file.
+
+Dependencies: current dependencies are 
+
+* nosetests (sudo apt-get install python-nose),
+* numpy and scipy (http://www.scipy.org/install.html), 
+* networkx (sudo pip install networkx),
+* pyhull (sudo pip install pyhull), 
+* sphinx (sudo apt-get install python-sphinx python-numpydoc) 
+* openCV (sudo apt-get install libopencv-dev python-opencv)
+
+Please ask Jochen if you run into any problems, or have any further questions

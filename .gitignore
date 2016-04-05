@@ -1,0 +1,41 @@
+# Copyright 2016 Jochen Kursawe. See the LICENSE file at the top-level directory 
+# of this distribution and at https://github.com/kursawe/MCSTracker/LICENSE.
+#
+# Ignore compiled python files
+*.pyc
+# vim editor metadata
+*~
+*.swp
+# netcdf files - we should be able to regenerate them all
+*.nc
+# the built website
+docs/build/
+# any documents
+*.pdf
+# any hidden files
+.*
+# any images
+*.kra
+*.png
+*.tif
+*.svg
+#.mesh files are our own file format for meshes
+*.mesh
+# latex blurbs
+*main.txt
+*.fls
+*.fdb_latexmk
+*.bbl
+*.aux
+*.log
+*.out
+*.blg
+*.synctex.gz
+*pk
+*.dvi
+# pickles
+*.pickle
+# other data
+*.csv
+# documentation meta files
+*.rst
