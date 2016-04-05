@@ -1,6 +1,6 @@
-"""This tests our first tracking example
-"""
-import mesh
+# Copyright 2016 Jochen Kursawe. See the LICENSE file at the top-level directory 
+# of this distribution and at https://github.com/kursawe/MCSTracker/blob/master/LICENSE.
+
 import tracking
 import networkx as nx
 import matplotlib as mpl

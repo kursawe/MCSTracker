@@ -1,5 +1,5 @@
 # Copyright 2016 Jochen Kursawe. See the LICENSE file at the top-level directory 
-# of this distribution and at https://github.com/kursawe/MCSTracker/LICENSE.
+# of this distribution and at https://github.com/kursawe/MCSTracker/blob/master/LICENSE.
 
 """This file contains preliminary work on making an analysis similar to the T1 analysis,
 except that here we randomly remove cells rather than randomly swap edges.
