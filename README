@@ -1,7 +1,7 @@
 Copyright 2016 Jochen Kursawe. See the LICENSE file at the top-level directory 
 of this distribution and at https://github.com/kursawe/MCSTracker/blob/master/LICENSE.
 
-Welcome to the repository for our cell tracking project! Currently, the repository contains four folders:
+Welcome to the repository for our cell tracking project! Currently, the repository contains three folders:
 
 ./src This folder contains python modules and packages that we have build for the project. There are class definitions for meshes, elements, and nodes, and functions to draw meshes with different properties. Tracking algorithms are in the src/tracking package.
 

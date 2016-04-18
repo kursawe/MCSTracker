@@ -1,6 +1,3 @@
-# Copyright 2016 Jochen Kursawe. See the LICENSE file at the top-level directory 
-# of this distribution and at https://github.com/kursawe/MCSTracker/blob/master/LICENSE.
-
 import mesh
 import tracking
 import copy
@@ -28,19 +25,22 @@ def make_t1_swap_figure():
     plt.rc('font', **font)
     mpl.rcParams['mathtext.default'] = 'regular'
     
-    figuresize = (6,2.75)
+    figuresize = (4.35,2.75)
     this_figure = plt.figure( figsize = figuresize )
-    ax = this_figure.add_axes([0.12, 0.15, 0.52, 0.75])
-    plt.plot(correctly_tracked_cells_percentage, 
+#     ax = this_figure.add_axes([0.12, 0.15, 0.52, 0.75])
+    plt.errorbar(correctly_tracked_cells_percentage, 
              np.mean(correctly_tracked_cells_values, axis = 1)*100,
+             np.std(correctly_tracked_cells_values, axis = 1)*100/np.sqrt(10.0),
+             ls = '--', dashes = (7,2),
              color = 'blue', label = 'Correctly tracked')
     for counter, percentage in enumerate(correctly_tracked_cells_percentage):
         data_points = correctly_tracked_cells_values[counter]*100
         x_values = np.array([percentage + 0.1]*len(data_points))
         plt.scatter(x_values, data_points, marker = '.', s = 30, 
                     alpha = 0.3, lw =0, color = 'blue')
-    plt.plot(incorrectly_tracked_cells_percentage, 
+    plt.errorbar(incorrectly_tracked_cells_percentage, 
              np.mean(incorrectly_tracked_cells_values, axis = 1)*100,
+             np.std(incorrectly_tracked_cells_values, axis = 1)*100/np.sqrt(10.0),
              color = 'red', label = 'Incorrectly tracked')
     for counter, percentage in enumerate(incorrectly_tracked_cells_percentage):
         data_points = incorrectly_tracked_cells_values[counter]*100
@@ -56,9 +56,11 @@ def make_t1_swap_figure():
     plt.xlabel("Percentage of edges undergoing T1 swaps")
     plt.ylabel("Percentage of cells")
     
-    plt.legend(loc = "center left", bbox_to_anchor=(1, 0.85))
+#     plt.legend(loc = "center left", bbox_to_anchor=(1, 0.85))
+    this_legend = plt.legend(loc = "upper right")
+    this_legend.set_zorder(0)
     plt.setp(plt.gca().get_legend().get_texts(), fontsize = '10')
-#     plt.tight_layout()
+    plt.tight_layout()
     plt.savefig("t1_swap_analysis_full.pdf")
 
 if __name__ == "__main__":
