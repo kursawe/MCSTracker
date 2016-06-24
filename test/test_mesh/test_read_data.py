@@ -8,7 +8,6 @@ import mesh
 from os import path
 from os.path import dirname
 from nose.plugins.attrib import attr
-from IPython.utils._tokenize_py2 import Number
 
 @attr(level = 'standard')
 class TestReadData(unittest.TestCase):

@@ -6,11 +6,13 @@
 import glob
 import re
 from os import path
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import pickle
 from .core import Mesh, Node, Element
+import mahotas
 
 def load(filename):
     """Reads a saved mesh back from a file.
@@ -28,11 +30,129 @@ def load(filename):
     mesh : mesh contained in file
     """
     file_to_read = open(filename, 'r')
-    mesh_to_read = pickle.load(file_to_read)
+    mesh_to_read = pickle.load( file_to_read )
     file_to_read.close()
     
     return mesh_to_read
 
+def convert_from_ilastik( picture_path, segmentation_path, out_path ):
+    """Reads a sequence of ilastik type segmentations and converts them
+    into seedwater type segmentation.
+    
+    Parameters
+    ----------
+    
+    picture_path : string
+        path to the images that should be segmented. This folder is expected to contain
+        a numbered sequence of .tif files.
+
+    segmentation_path : string
+        path to the ilastik sequence. This is expected to be a folder that
+        contains a numbered sequence of .tif files that was generated
+        using ilastik segmentation from the images in picture_path.
+        In particular, the segmented images are expected to have the same order
+        and number as the ones in picture_path.
+        
+    out_path : string
+        will store a seedwater-type segmentation that we can then convert to
+        a vertex mesh.
+    """
+    
+    list_of_image_files = glob.glob( os.path.join(picture_path , '*.tif') )
+    list_of_image_files.sort(key=_natural_keys)
+
+    list_of_segmented_files = glob.glob( os.path.join( segmentation_path , '*.tif') )
+    list_of_segmented_files.sort(key=_natural_keys)
+    
+    if not os.path.isdir(out_path):
+        os.mkdir(out_path)
+
+    for image_counter, image_path in enumerate( list_of_image_files ):
+        image_filename = os.path.split(image_path)[1]
+        segmented_image_path = list_of_segmented_files[ image_counter ]
+        out_file_name = os.path.join(out_path, 'segmented_' + image_filename)
+        convert_single_file_from_ilastik(image_path, segmented_image_path, out_file_name)
+        
+def convert_single_file_from_ilastik( image_path, segmentation_path, out_path ):
+    """Reads a file that was segmented with ilastik and turns it into a
+    file as seedwater would create it.
+    
+    Parameters
+    ----------
+    
+    image_path : string
+        path to the image file
+        
+    segmentation_path : string
+        path to the ilastik segmented image file
+
+    out_path : string
+        where the converted file should be stored
+    """
+    full_image = plt.imread(image_path)
+
+    segmented_image = plt.imread(segmentation_path)
+
+    seed_image = create_seeds_from_image(segmented_image)
+
+    segmentation = create_segmentation_from_seeds( full_image, seed_image )
+    
+    cv2.imwrite(out_path, segmentation)
+
+def create_segmentation_from_seeds( input_image, seed_image ):
+    """Create a Seedwater style segmentation from a bunch of seeds in an image.
+    
+    Parameters
+    ----------
+    
+    input_image : nd_array
+        image that should be segmented
+        
+    seed_image : nd_array
+        image that contains the seeds
+        
+    Returns
+    -------
+    
+    segmentation : nd_array
+        segmented image represented as 16bit integer image
+    """
+    segmented_image = mahotas.cwatershed( input_image, seed_image )
+    segmented_image_as_16_bit = np.array( segmented_image, dtype = 'uint16' )
+    
+    return segmented_image_as_16_bit
+    
+def create_seeds_from_image( input_image ):
+    """Create seeds from image to grow full segmentation.
+    
+    Parameters
+    ----------
+    
+    input_image : nd array
+        array representation of the image
+        
+    Returns
+    -------
+    seed_image : nd array
+        image filled with zeros, each 'seed' has a different integer value
+    """
+    
+    # This will find all the cell-inner parts
+    this_image_binary = np.array( (input_image == 2), dtype = 'uint8' )
+    these_contours, hirarchy = cv2.findContours(this_image_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    seed_image = np.zeros_like(input_image, dtype = 'uint')
+    helper_image = np.zeros_like(input_image, dtype = 'uint8')
+    seed_counter = 1
+    for contour_counter, contour in enumerate(these_contours):
+        helper_image[:] = 0
+        cv2.drawContours( helper_image, these_contours, contour_counter, color = 1,
+                          thickness = -1 )
+        if np.count_nonzero(helper_image) > 1:
+            seed_image[ helper_image == 1 ] = seed_counter
+            seed_counter +=1
+
+    return seed_image
+    
 def load_sequence(path):
     """Reads a sequence of meshes
     
@@ -122,7 +242,8 @@ def read_data_and_create_raw_mesh( filename ):
         a mesh representation of this .tif frame
     """
 
-    this_image = plt.imread(filename)
+#     this_image = plt.imread(filename)
+    this_image = cv2.imread( filename, flags = -1 )
 
     contour_list, cell_ids = get_contour_list(this_image)
     
@@ -381,49 +502,55 @@ def extract_vertex_data(this_image, contour_list, cell_ids):
     for contour_index in range(no_of_cells):
         no_of_vertices_this_cell = 0
         # We loop over each border pixel of that cell
-        for pixel_index in range(np.shape(contour_list[contour_index])[1]):
+#         for pixel_index, pixel_coordinates in enumerate( contour_list[contour_index] ):
+# 
+#             y_index = pixel_coordinates[pixel_index][0][0]
+#             x_index = pixel_coordinates[pixel_index][0][1]
 
-            y_index = contour_list[contour_index][0][pixel_index][0][0]
-            x_index = contour_list[contour_index][0][pixel_index][0][1]
+        for contour in contour_list[contour_index]:
+            for pixel_coordinates in contour:
+ 
+                y_index = pixel_coordinates[0][0]
+                x_index = pixel_coordinates[0][1]
 
-            # Get all the surrounding pixels of the current pixel
-            values_in_neighbourhood = this_image[(x_index -1):(x_index + 2)][:,(y_index - 1):(y_index + 2)]
-            no_values_in_neighbourhood = len(np.unique(values_in_neighbourhood))
+                # Get all the surrounding pixels of the current pixel
+                values_in_neighbourhood = this_image[(x_index -1):(x_index + 2)][:,(y_index - 1):(y_index + 2)]
+                no_values_in_neighbourhood = len(np.unique(values_in_neighbourhood))
 
-            if (no_values_in_neighbourhood > 2):
-                ordered_triple_junctions = find_triple_junctions_at_pixel(this_image, x_index, y_index)
-                for triple_junction in ordered_triple_junctions:
-                    if np.any( np.all( vertex_array == triple_junction, axis =1 ) ):
-                        #This_junction has been found before, here is the index of that vertex
-                        vertex_index = np.where( np.all( vertex_array == triple_junction, axis = 1 ))[0][0]
-                        # The Triple Junction is potentially in the Neighbourhood of multiple pixels of a cell
-                        # Check whether it is member of the cell already
-                        if no_of_vertices_this_cell > 0:
-                            if ( vertex_index not in 
-                                 vertices_of_cells[contour_index,0:number_vertices_of_cells[contour_index]]):
-                                # Ok, it was not in the neighbourhood of the last pixel, so we can
-                                # assign the Vertex to this cell
-                                no_of_cells_per_vertex[ vertex_index ]  += 1
-                                vertices_of_cells[contour_index, no_of_vertices_this_cell] = vertex_index                                
+                if (no_values_in_neighbourhood > 2):
+                    ordered_triple_junctions = find_triple_junctions_at_pixel(this_image, x_index, y_index)
+                    for triple_junction in ordered_triple_junctions:
+                        if np.any( np.all( vertex_array == triple_junction, axis =1 ) ):
+                            #This_junction has been found before, here is the index of that vertex
+                            vertex_index = np.where( np.all( vertex_array == triple_junction, axis = 1 ))[0][0]
+                            # The Triple Junction is potentially in the Neighbourhood of multiple pixels of a cell
+                            # Check whether it is member of the cell already
+                            if no_of_vertices_this_cell > 0:
+                                if ( vertex_index not in 
+                                     vertices_of_cells[contour_index,0:number_vertices_of_cells[contour_index]]):
+                                    # Ok, it was not in the neighbourhood of the last pixel, so we can
+                                    # assign the Vertex to this cell
+                                    no_of_cells_per_vertex[ vertex_index ]  += 1
+                                    vertices_of_cells[contour_index, no_of_vertices_this_cell] = vertex_index                                
+                                    number_vertices_of_cells[contour_index] += 1
+                                    no_of_vertices_this_cell += 1
+                            else:
+                                # This is the first vertex for this cell, so let's assign the vertex to
+                                # this cell
+                                no_of_cells_per_vertex[ vertex_index ] += 1
+                                vertices_of_cells[contour_index, no_of_vertices_this_cell] = vertex_index
                                 number_vertices_of_cells[contour_index] += 1
                                 no_of_vertices_this_cell += 1
                         else:
-                            # This is the first vertex for this cell, so let's assign the vertex to
-                            # this cell
-                            no_of_cells_per_vertex[ vertex_index ] += 1
-                            vertices_of_cells[contour_index, no_of_vertices_this_cell] = vertex_index
-                            number_vertices_of_cells[contour_index] += 1
+                            # This is a new vertex. Let's write that vertex and assign it to this cell
+                            vertex_array[ no_of_vertices ] = triple_junction
+                            no_of_cells_per_vertex[no_of_vertices] +=1
+
+                            vertices_of_cells[ contour_index, no_of_vertices_this_cell] = no_of_vertices
                             no_of_vertices_this_cell += 1
-                    else:
-                        # This is a new vertex. Let's write that vertex and assign it to this cell
-                        vertex_array[ no_of_vertices ] = triple_junction
-                        no_of_cells_per_vertex[no_of_vertices] +=1
+                            number_vertices_of_cells[contour_index] += 1
 
-                        vertices_of_cells[ contour_index, no_of_vertices_this_cell] = no_of_vertices
-                        no_of_vertices_this_cell += 1
-                        number_vertices_of_cells[contour_index] += 1
-
-                        no_of_vertices +=1
+                            no_of_vertices +=1
     
     # We now have some vectors that are too long. Let's shorten them!
     # We also need move the vertex positions from the pixel to the actual

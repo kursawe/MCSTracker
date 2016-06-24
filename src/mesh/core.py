@@ -1450,7 +1450,6 @@ class Mesh():
         polygon_collection.set_edgecolor('red')
         polygon_collection.set_alpha(0.25)
         polygon_collection.set_linewidth(3)
-
         
         overlay_figure = plt.figure()
         plt.imshow(real_image, cmap = plt.cm.Greys_r)
