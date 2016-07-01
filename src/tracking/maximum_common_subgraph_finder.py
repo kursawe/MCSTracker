@@ -1035,6 +1035,10 @@ class ReducedBacktrackingSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
 
         return str1 in str2 + ' ' + str2
     
+class FirstIndexException(Exception):
+    def __init__(self):
+        Exception.__init__(self, "First index could not be found")
+
 class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
     def __init__(self, mesh_one, mesh_two):
         """A helper class to find maximum common subgraphs. Inherits from
@@ -1092,7 +1096,10 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         entry_counter = 0
 
         while first_match_not_yet_found:
-            vertex = first_vertices[ entry_counter ]
+            try:
+                vertex = first_vertices[ entry_counter ]
+            except IndexError:
+                raise FirstIndexException()
 #             print 'consider vertex with frame id, position, and degree'
 #             vertex_id = self.network_one.nodes()[vertex]
 #             print vertex_id
@@ -1440,6 +1447,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                                                                           for vertex in vertices_that_are_adjacent_to_vertex_one])
  
         vertices_that_are_adjacent_to_vertex_two = self.network_two.neighbors(self.network_two_node_iterator[vertex_two])
+        vertices_that_are_adjacent_to_vertex_two.append(self.network_two_node_iterator[vertex_two])
         indices_of_vertices_that_are_adjacent_to_vertex_two = np.array( [ self.network_two_index_lookup[vertex] 
                                                                           for vertex in vertices_that_are_adjacent_to_vertex_two])
 

@@ -11,6 +11,7 @@ import colorsys
 import warnings
 import pickle
 import sys
+import cv2
 
 import matplotlib as mpl
 mpl.use('Agg')
@@ -369,8 +370,9 @@ class Mesh():
         network.add_edges_from(network_edges)
         
         for element in self.elements:
-            network.node[element.id_in_frame]['position'] = element.calculate_centroid()
-            network.node[element.id_in_frame]['num_neighbours'] = element.get_num_nodes()
+            if network.has_node(element.id_in_frame):
+                network.node[element.id_in_frame]['position'] = element.calculate_centroid()
+                network.node[element.id_in_frame]['num_neighbours'] = element.get_num_nodes()
         
         return network
     
@@ -1457,6 +1459,84 @@ class Mesh():
         plt.scatter(node_positions[:,0], node_positions[:,1], s = 1, color = 'black', alpha = 0.3, marker = 'o', linewidths = 0.0)
         overlay_figure.savefig(filename, bbox_inches = 'tight')
         
+    def plot_tracked_data(self, filename, image_path, segmented_path, max_global_id):
+        """Overlays the mesh with the actual data from the image
+        
+        Parameters
+        ----------
+        
+        filename : string
+            path to the file where the overlay should be saved
+            
+        real_frame_matrix : string
+            path to the image that is associated with this frame.
+        """
+        # figure properties
+        figuresize = (4,2.75)
+        font = {'size'   : 10}
+        plt.rc('font', **font)
+
+        real_image = plt.imread(image_path)
+        segmented_image = cv2.imread( segmented_path, flags = -1 )
+        
+        color_selection = np.array( _get_distinct_colors( max_global_id + 1 ) )*255
+        np.random.seed(12)
+        np.random.shuffle(color_selection)
+        
+        real_image_converted = np.zeros( ( real_image.shape[0], real_image.shape[1], 3 ),
+                                           dtype = 'uint8' )
+        
+        real_image_converted[:,:,0] = real_image*255.0/65535.0
+        real_image_converted[:,:,1] = real_image*255.0/65535.0
+        real_image_converted[:,:,2] = real_image*255.0/65535.0
+       
+        overlay_image = np.zeros( ( real_image.shape[0], real_image.shape[1], 3 ),
+                                    dtype = 'uint8' )
+
+        overlay_image[:] = real_image_converted[:]
+        helper_image = np.zeros( ( real_image.shape[0], real_image.shape[1], 3 ),
+                                  dtype = 'uint8' )
+
+        cell_counter = 0
+        for element in self.elements:
+            if element.global_id != None:
+                cell_counter+=1
+                this_color = color_selection[element.global_id]
+                this_frame_id = element.id_in_frame
+                this_mask = segmented_image == this_frame_id
+                helper_image[this_mask] = this_color
+                overlay_image[this_mask] = real_image_converted[this_mask]*0.5 + helper_image[this_mask]*0.5
+                if getattr(element, 'is_new', False):
+                    try:
+                        centroid = element.calculate_centroid()
+                        centroid_image_coordinates = centroid.copy()
+#                         centroid_image_coordinates[0] = real_image.shape[0] - centroid[1]
+                        centroid_image_coordinates[1] = real_image.shape[0] - centroid[1]
+                        centroid_image_coordinates[0] = centroid[0]
+#                         import pdb; pdb.set_trace()
+#                         import pdb; pdb.set_trace()
+                        cv2.circle(overlay_image, tuple( centroid_image_coordinates.astype('int') ),
+                                   radius = 2, color = (0,0,255), thickness = -1)
+                    except:
+                        pass
+                
+                try:
+                    centroid = element.calculate_centroid()
+                    centroid_image_coordinates = centroid.copy()
+                    centroid_image_coordinates[1] = real_image.shape[0] - centroid[1]
+                    centroid_image_coordinates[0] = centroid[0]
+                    centroid_image_coordinates += [-5,5]
+                    cv2.putText(overlay_image, str(element.global_id), tuple(centroid_image_coordinates.astype('int')),
+                                cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, fontScale = 0.2, 
+                                color = (0,0,0) )
+                except:
+                    pass
+#                 overlay_image[this_mask] = real_image_converted[this_mask]
+#                 import pdb; pdb.set_trace();
+                helper_image[:] = 0
+                
+        cv2.imwrite( filename, overlay_image )
+
     def get_node_with_id(self, node_id):
         """Get the node instance that corresponds to this node id.
         

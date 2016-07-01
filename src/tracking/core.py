@@ -4,8 +4,11 @@
 """In this the main tracking functions are defined
 """
 import sys
+import os
 from .maximum_common_subgraph_finder import *
 import mesh
+from mesh.in_out import _natural_keys
+import glob
 import copy
 import warnings
 
@@ -47,7 +50,7 @@ def track(mesh_one, mesh_two):
 #     
     return mapped_ids
 
-def track_and_write_sequence(input_path, output_path):
+def track_and_write_sequence(input_path, output_path, number_meshes = None):
     """Reads a sequence and writes the tracked data into consecutive meshes
     
     Cells that are present in multiple frames will have the same global ids,
@@ -64,19 +67,26 @@ def track_and_write_sequence(input_path, output_path):
         filename where the output should be saved, without file ending
         this name will be extended with a number and .mesh for each segmented
         frame
+        
+    number_meshes : int
+        how many mashes of the sequence should we attempt to track
     """
 
-    mesh_sequence = mesh.read_sequence_from_data(input_path) 
-    previous_sequence = mesh.read_sequence_from_data(input_path)   
-    next_sequence = mesh.read_sequence_from_data(input_path)
-
+    mesh_sequence = mesh.read_sequence_from_data(input_path, number_meshes) 
+    previous_sequence = mesh.read_sequence_from_data(input_path, number_meshes)   
+    next_sequence = mesh.read_sequence_from_data(input_path, number_meshes)
+    
     # track all consecutive time frames individually
     step_sequence = []
     for counter, this_mesh in enumerate(mesh_sequence):
         if counter > 0:
             previous_mesh = previous_sequence[counter -1]
             corresponding_mesh = next_sequence[counter]
-            track(previous_mesh, corresponding_mesh)
+            print 'tracking step ' + str(counter)
+            try:
+                track(previous_mesh, corresponding_mesh)
+            except FirstIndexException:
+                print "Could not find first index in tracking step " + str(counter)
             step_sequence.append([previous_mesh, corresponding_mesh])
     
     # give global ids to the first mesh
@@ -97,6 +107,7 @@ def track_and_write_sequence(input_path, output_path):
                     new_global_id = max(global_ids) + 1
                     global_ids.append(max(global_ids)+1)
                     element.global_id = new_global_id
+                    element.is_new = True
                 else:
                     previous_frame_id = previous_mesh.get_element_with_global_id(this_global_id).id_in_frame
                     previous_global_id = mesh_sequence[counter - 1].get_element_with_frame_id(previous_frame_id).global_id
@@ -128,6 +139,32 @@ def analyse_tracked_sequence(input_path):
     
     return DataCollector(mesh_sequence)
 
+def plot_tracked_sequence( sequence_path, image_path, segmented_path, out_path ):
+    mesh_sequence = mesh.load_sequence( sequence_path )
+    
+    list_of_image_files = glob.glob( os.path.join( image_path , '*.tif') )
+    list_of_image_files.sort(key=_natural_keys)
+
+    list_of_segmented_files = glob.glob( os.path.join( segmented_path , '*.tif') )
+    list_of_segmented_files.sort(key=_natural_keys)
+
+    # get maximal global id
+    max_global_id = 0
+    for mesh_instance in mesh_sequence:
+        this_max_global_id = mesh_instance.get_max_global_id()
+        if this_max_global_id > max_global_id:
+            max_global_id = this_max_global_id
+    
+    if not os.path.isdir(out_path):
+        os.mkdir(out_path)
+
+    for mesh_counter, mesh_instance in enumerate( mesh_sequence ):
+        this_image_path = list_of_image_files[mesh_counter]
+        this_segmented_path = list_of_segmented_files[mesh_counter]
+        out_file_name = os.path.split( this_image_path.replace('.tif', '_overlay.png') )[1]
+        out_file_path = os.path.join(out_path, out_file_name)
+        mesh_instance.plot_tracked_data(out_file_path, this_image_path, this_segmented_path, max_global_id)
+        
 class DataCollector():
     """A class for analysing tracked sequences."""
     
@@ -637,6 +674,8 @@ class PostProcessor():
         """
         for element in self.mesh_one.elements:
             if element.global_id != None:
+#                 if element.global_id == 166:
+#                     import pdb; pdb.set_trace()
                 if self.is_isolated(element):
                     this_global_id = element.global_id
                     self.mesh_two.get_element_with_global_id(this_global_id).global_id = None
@@ -840,6 +879,8 @@ class PostProcessor():
         for global_id, frame_one_id in enumerate(preserved_mappings):
             self.mesh_one.get_element_with_frame_id(frame_one_id).global_id = global_id
             self.mesh_two.get_element_with_frame_id(self.largest_mappings[0][frame_one_id]).global_id = global_id
+#             if global_id == 166:
+#                 import pdb; pdb.set_trace();
             self.mapped_ids.append(global_id)
 
         self.mesh_two.index_global_ids()
