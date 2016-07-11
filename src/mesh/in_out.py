@@ -177,7 +177,7 @@ def load_sequence(path):
 
     return mesh_sequence
 
-def read_sequence_from_data(folder_name, number_meshes = None):
+def read_sequence_from_data(folder_name, start_number, number_meshes = None):
     """Reads a seedwater output folder of .tif files and transforms it into a sequence
        of mesh objects
     
@@ -196,7 +196,9 @@ def read_sequence_from_data(folder_name, number_meshes = None):
     list_of_files = glob.glob(path.join(folder_name, '*.tif'))
     list_of_files.sort(key=_natural_keys)
     if number_meshes != None:
-        list_of_files = list_of_files[:number_meshes]
+        list_of_files = list_of_files[(start_number -1):number_meshes]
+    else:
+        list_of_files = list_of_files[(start_number -1):]
 
     mesh_sequence = []
     for filename in list_of_files:

@@ -81,7 +81,7 @@ class Mesh():
         """
         return len(self.elements)
     
-    def plot(self, filename, color_by_global_id = False, total_number_of_global_ids = None):
+    def plot(self, filename, color_by_global_id = False, total_number_of_global_ids = None, reduced_mcs_only = False):
         """Plots the mesh to a file using matplotlib
         
         Parameters
@@ -118,13 +118,18 @@ class Mesh():
         plt.rc('font', **font)
 
         mesh_figure = plt.figure(figsize = figuresize)
-        polygon_collection = self.get_polygon_collection(color_by_global_id, total_number_of_global_ids)
+        polygon_collection = self.get_polygon_collection( color_by_global_id, total_number_of_global_ids, 
+                                                          reduced_mcs_only )
         mesh_figure.gca().add_collection(polygon_collection)
         mesh_figure.gca().set_aspect('equal')
         mesh_figure.gca().autoscale_view()
-        mesh_figure.savefig(filename, bbox_inches = 'tight')
+        if filename.endswith('.pdf'):
+            mesh_figure.savefig(filename, bbox_inches = 'tight')
+        else:
+            mesh_figure.savefig(filename, bbox_inches = 'tight', dpi = 300)
         
-    def get_polygon_collection(self, color_by_global_id = False, total_number_of_global_ids = None):
+    def get_polygon_collection( self, color_by_global_id = False, total_number_of_global_ids = None,
+                                reduced_mcs_only = False ):
         """Helper method for plot command, allows to include mesh representations
            in your own matplotlib plots
         
@@ -158,7 +163,7 @@ class Mesh():
             if total_number_of_global_ids == None:
                 raise Exception("You need to provide the total_number_of_global_ids argument!")
             else:
-                color_collection = _get_distinct_colors(total_number_of_global_ids) 
+                color_collection = _get_distinct_colors( total_number_of_global_ids + 1 ) 
         elif color_by_global_id == False:
             if self.get_maximal_frame_id() is not None:
                 color_collection = _get_distinct_colors(self.get_maximal_frame_id() + 1)
@@ -171,7 +176,17 @@ class Mesh():
                 if element.global_id == None:
                     this_polygon.set_facecolor([1.0, 1.0, 1.0])
                 else:
-                    this_polygon.set_facecolor(color_collection[element.global_id])
+                    if reduced_mcs_only: 
+                        if element.is_in_reduced_mcs_next and not element.is_in_reduced_mcs_previous:
+                            this_polygon.set_facecolor('yellow')
+                        elif element.is_in_reduced_mcs_previous and not element.is_in_reduced_mcs_next:
+                            this_polygon.set_facecolor('blue')
+                        elif element.is_in_reduced_mcs_next and element.is_in_reduced_mcs_previous:
+                            this_polygon.set_facecolor('green')
+                        else:
+                            this_polygon.set_facecolor('white')
+                    else:
+                        this_polygon.set_facecolor(color_collection[element.global_id])
 
             elif color_by_global_id == False:
 

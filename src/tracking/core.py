@@ -50,7 +50,7 @@ def track(mesh_one, mesh_two):
 #     
     return mapped_ids
 
-def track_and_write_sequence(input_path, output_path, number_meshes = None):
+def track_and_write_sequence(input_path, output_path, start_number = 1, number_meshes = None):
     """Reads a sequence and writes the tracked data into consecutive meshes
     
     Cells that are present in multiple frames will have the same global ids,
@@ -68,13 +68,16 @@ def track_and_write_sequence(input_path, output_path, number_meshes = None):
         this name will be extended with a number and .mesh for each segmented
         frame
         
+    start_number : int
+        mesh number to be started with (indexing starts at one)
+        
     number_meshes : int
-        how many mashes of the sequence should we attempt to track
+        index of the last mesh we want to track (indexing starts at one)
     """
 
-    mesh_sequence = mesh.read_sequence_from_data(input_path, number_meshes) 
-    previous_sequence = mesh.read_sequence_from_data(input_path, number_meshes)   
-    next_sequence = mesh.read_sequence_from_data(input_path, number_meshes)
+    mesh_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes) 
+    previous_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)   
+    next_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)
     
     # track all consecutive time frames individually
     step_sequence = []
@@ -94,29 +97,52 @@ def track_and_write_sequence(input_path, output_path, number_meshes = None):
     for counter, element in enumerate(mesh_sequence[0].elements):  
         element.global_id = counter
         global_ids.append(counter)
+        element.is_in_reduced_mcs_previous = False
     mesh_sequence[0].index_global_ids()
 
     # trace global ids through all the meshes, making new ones if necessary
     for counter, this_mesh in enumerate(mesh_sequence):
+        if counter == 0:
+            corresponding_mesh_next_step = step_sequence[counter][0]
+            for element_counter, element in enumerate(this_mesh.elements):
+                element.is_in_reduced_mcs_next = corresponding_mesh_next_step.elements[element_counter].is_in_reduced_mcs_next
         if counter > 0:
             previous_mesh = step_sequence[counter - 1][0]
             corresponding_mesh = step_sequence[counter - 1][1]
-            for element in this_mesh.elements:
-                this_global_id = corresponding_mesh.get_element_with_frame_id(element.id_in_frame).global_id
+
+            if counter < len(step_sequence):
+                corresponding_mesh_next_step = step_sequence[counter][0]
+
+            for element_counter, element in enumerate(this_mesh.elements):
+                corresponding_element = corresponding_mesh.get_element_with_frame_id(element.id_in_frame)
+                this_global_id = corresponding_element.global_id
                 if this_global_id == None:
                     new_global_id = max(global_ids) + 1
-                    global_ids.append(max(global_ids)+1)
+                    global_ids.append( max(global_ids) + 1 )
                     element.global_id = new_global_id
                     element.is_new = True
                 else:
                     previous_frame_id = previous_mesh.get_element_with_global_id(this_global_id).id_in_frame
                     previous_global_id = mesh_sequence[counter - 1].get_element_with_frame_id(previous_frame_id).global_id
                     element.global_id = previous_global_id
+                
+                try:
+                    element.is_in_reduced_mcs_previous = corresponding_element.is_in_reduced_mcs_previous
+                except:
+                    element.is_in_reduced_mcs_previous = False
+
+                if counter < len(step_sequence):
+                    try:
+                        element.is_in_reduced_mcs_next = corresponding_mesh_next_step.elements[element_counter].is_in_reduced_mcs_next
+                    except(AttributeError):
+                        element.is_in_reduced_mcs_next = False
+                else:
+                    element.is_in_reduced_mcs_next = False
             this_mesh.index_global_ids()
-            
+        
     #now, save the mesh sequence
     for counter, this_mesh in enumerate(mesh_sequence):
-        this_file_name = output_path + str(counter) + '.mesh'
+        this_file_name = output_path + str(start_number + counter - 1) + '.mesh'
         this_mesh.save(this_file_name)
 
 def analyse_tracked_sequence(input_path):
@@ -156,15 +182,36 @@ def plot_tracked_sequence( sequence_path, image_path, segmented_path, out_path )
             max_global_id = this_max_global_id
     
     if not os.path.isdir(out_path):
-        os.mkdir(out_path)
+        os.mkdir( out_path )
+        
+    overlay_path = os.path.join(out_path, 'overlay')
+    if not os.path.isdir(overlay_path):
+        os.mkdir( overlay_path )
+
+    polygon_path = os.path.join(out_path, 'pologyons')
+    if not os.path.isdir(polygon_path):
+        os.mkdir( polygon_path )
+        
+    mcs_path = os.path.join(out_path, 'mcs')
+    if not os.path.isdir(mcs_path):
+        os.mkdir( mcs_path )
 
     for mesh_counter, mesh_instance in enumerate( mesh_sequence ):
         this_image_path = list_of_image_files[mesh_counter]
         this_segmented_path = list_of_segmented_files[mesh_counter]
         out_file_name = os.path.split( this_image_path.replace('.tif', '_overlay.png') )[1]
-        out_file_path = os.path.join(out_path, out_file_name)
-        mesh_instance.plot_tracked_data(out_file_path, this_image_path, this_segmented_path, max_global_id)
+
+        overlay_file_path = os.path.join(overlay_path, out_file_name)
+        mesh_instance.plot_tracked_data(overlay_file_path, this_image_path, this_segmented_path, max_global_id)
+
+        polygon_file_name = os.path.join( polygon_path, out_file_name )
+        mesh_instance.plot( polygon_file_name, color_by_global_id = True,
+                            total_number_of_global_ids = max_global_id)
         
+        mcs_file_path = os.path.join( mcs_path, out_file_name )
+        mesh_instance.plot( polygon_file_name, color_by_global_id = True,
+                            total_number_of_global_ids = max_global_id, reduced_mcs_only = True )
+
 class DataCollector():
     """A class for analysing tracked sequences."""
     
@@ -527,7 +574,7 @@ class PostProcessor():
                                 reduced_images_of_already_mapped_neighbours = [item for item in image_set
                                                                                if item != image ]
 #                                 print reduced_images_of_already_mapped_neighbours
-                                assert( len(reduced_images_of_already_mapped_neighbours) >= min_neighbour_number )
+                                assert( len( reduced_images_of_already_mapped_neighbours ) >= min_neighbour_number )
                                 mapping_candidates.update( self.mesh_two.get_not_yet_mapped_shared_neighbour_ids( reduced_images_of_already_mapped_neighbours,
                                                                                                                   preliminary_mapping.values() ))
                                 new_reduced_image_sets.append(list(reduced_images_of_already_mapped_neighbours))
@@ -699,7 +746,20 @@ class PostProcessor():
         self.mesh_two.index_global_ids()
         
         self.mapped_ids = new_mapped_ids
+        
+        # apply reduced_mcs flags:
+        for element in self.mesh_one.elements:
+            if element.global_id in self.mapped_ids:
+                element.is_in_reduced_mcs_next = True
+            else:
+                element.is_in_reduced_mcs_next = False
 
+        for element in self.mesh_two.elements:
+            if element.global_id in self.mapped_ids:
+                element.is_in_reduced_mcs_previous = True
+            else:
+                element.is_in_reduced_mcs_previous = False
+                
     def is_isolated(self, element):
         """This function determines whether the element is isolated in mesh_one or not.
         
