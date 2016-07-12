@@ -1381,6 +1381,11 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
 
         vertex_is_mapped_equally_in_all_largest_mappings, image = self.vertex_is_mapped_equally_in_all_largest_mappings(vertex)
                 
+        if vertex_is_mapped_equally_in_all_largest_mappings:
+            vertex_preserves_rotational_symmetry = self.vertex_preserves_rotational_symmetry(vertex)
+#             vertex_preserves_rotational_symmetry = True
+        else:
+            vertex_preserves_rotational_symmetry = False
 #         if self.network_one.nodes()[vertex] == 0:
 #             print 'vertex 0 has position'
 #             print self.network_one.node[vertex_id]['position']
@@ -1396,7 +1401,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
 #                         print 'onto:'
 #                         print self.network_two.node[largest_mapping[frame_id]]['position']
                         
-        if vertex_is_mapped_equally_in_all_largest_mappings:
+        if ( vertex_is_mapped_equally_in_all_largest_mappings and vertex_preserves_rotational_symmetry ):
 #             if self.network_one.nodes()[vertex] == 0:
 #                 print 'vertex 0 is mapped equally in all largest mappings'
             new_tracking_state = self.extend_tracking_state(tracking_state, vertex, self.network_two_index_lookup[image] )
@@ -1413,6 +1418,98 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             tracking_state.not_blacklisted_vector[vertex] = False
         
         return new_tracking_state
+
+    def vertex_preserves_rotational_symmetry(self, vertex):
+        """Check whether mapping with vertex, image pair preserves rotational symmetry
+        
+        Parameters
+        ----------
+        
+        vertex : int
+            index of vertex
+        
+        Returns
+        -------
+        
+        preserves_rotational_symmetry : bool
+            True if the neighbour of vertex with largest number of mapped neighbours in the current largest
+            mapping hast its neighbours matched in the correct rotational order
+        """
+        vertex_id = self.network_one_node_iterator[vertex]
+        ## get neighbour of vertex with maximal tracked neighbours in first largest mapping
+        for largest_mapping in self.largest_mappings:
+            # get mapped neighbours
+            already_mapped_elements = largest_mapping.keys()
+            mapped_neighbours = self.mesh_one.get_already_mapped_adjacent_element_ids(vertex_id, already_mapped_elements)
+            for neighbour_id in mapped_neighbours:
+                is_in_order = self.check_neighbours_are_mapped_in_order( neighbour_id, largest_mapping )
+                if not is_in_order:
+#                     import pdb; pdb.set_trace();
+                    return False
+                else:
+                    print 'everything is in order here!'
+        
+        return True
+
+            # find neighbour with most neighbours
+#             maximal_neighbour_number = 0
+#             maximal_neighbour_candidate = -1
+#             for neighbour_id in mapped_neighbours:
+#                 this_neighbour_neighbour_count = len(self.mesh_one.get_already_mapped_adjacent_element_ids( neighobur_id, 
+#                                                                                                             already_mapped_elements ))
+#                 if this_neighbour_neighbour_count > maximal_neighbour_number:
+#                     maximal_neighbour_number = this_neighbour_neighbour_count
+#                     maximal_neighbour_candidate = neighobur_id
+                    
+            # check rotational symmetry:
+        ## check rotational symmetry of mapped neighbours of neighbour
+
+    def check_neighbours_are_mapped_in_order(self, frame_id, id_map):
+        """True if all neighbours of frame_id are mapped in the correct order
+        
+        Parameters
+        ----------
+        
+        frame_id : int
+            frame_id in network one for which we would like to check whether the neighbours got mapped in the right 
+            order.
+            
+        id_map : dict
+            a dictionary from frame_ids in mesh_one to frame_ids in mesh_two
+            
+        Returns
+        -------
+        
+        neighbours_are_mapped_in_order: bool
+            true if all neighbours are mapped in the correct circular order.
+        """
+        
+        already_mapped_elements = id_map.keys()
+
+        first_already_mapped_neighbours = self.mesh_one.get_already_mapped_adjacent_element_ids( frame_id, 
+                                                                                                 already_mapped_elements )
+
+        mapped_neighbour_element_ids = []
+        for this_id in first_already_mapped_neighbours:
+            mapped_neighbour_element_ids.append( id_map[this_id] )
+
+        image_frame_id = id_map[frame_id]
+        already_mapped_elements_images = id_map.values()
+        second_already_mapped_neighbours = self.mesh_two.get_already_mapped_adjacent_element_ids( image_frame_id, 
+                                                                                                  already_mapped_elements_images )
+        
+        # The next bit is from stackoverflow: a quick comparision whether two integer lists are in same circular order 
+        # http://stackoverflow.com/questions/26924836/how-to-check-whether-two-lists-are-circularly-identical-in-python
+
+        str1 = ' '.join(map(str, second_already_mapped_neighbours))
+        str2 = ' '.join(map(str, mapped_neighbour_element_ids))
+        
+        is_ordered = str1 in str2 + ' ' + str2
+
+#         if not is_ordered:
+#             import pdb; pdb.set_trace()
+
+        return is_ordered   
 
     def extend_tracking_state(self, tracking_state, vertex_one, vertex_two):
         """Create an new tracking state, where tracking state is extended by the mapping from current_vertex 

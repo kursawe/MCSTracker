@@ -666,7 +666,7 @@ class PostProcessor():
         
         self.extend_current_preliminary_mapping(connected_component_one, preliminary_mapping, minimal_number_of_neighbours=4)
         self.extend_current_preliminary_mapping(connected_component_one, preliminary_mapping, minimal_number_of_neighbours=3)
-        self.extend_current_preliminary_mapping(connected_component_one, preliminary_mapping, minimal_number_of_neighbours=2)
+#         self.extend_current_preliminary_mapping(connected_component_one, preliminary_mapping, minimal_number_of_neighbours=2)
 #         self.extend_current_preliminary_mapping(connected_component_one, preliminary_mapping, minimal_number_of_neighbours=1)
                 
         return preliminary_mapping
