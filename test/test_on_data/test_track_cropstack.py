@@ -28,7 +28,7 @@ class TestTrackCropstack(unittest.TestCase):
 #        thread.join()
 
         
-    def xest_track_and_write_full_sequence(self):
+    def test_track_and_write_full_sequence(self):
 
 #         mesh_sequence = mesh.read_sequence_from_data(path.join(dirname(__file__),
 #                                                                '..','test_mesh','output','converted')) 
@@ -37,7 +37,7 @@ class TestTrackCropstack(unittest.TestCase):
                                                      '..','test_mesh','output','converted'),
                                            path.join(dirname(__file__),
                                                      'output','crostack_track'),
-                                           start_number = 1, number_meshes = 21 ) 
+                                           start_number = 3, number_meshes = 9 ) 
         
     def test_visualize_sequence(self):
         tracking.plot_tracked_sequence( path.join(dirname(__file__),
