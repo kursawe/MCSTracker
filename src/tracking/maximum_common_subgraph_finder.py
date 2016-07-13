@@ -1446,8 +1446,6 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                 if not is_in_order:
 #                     import pdb; pdb.set_trace();
                     return False
-                else:
-                    print 'everything is in order here!'
         
         return True
 

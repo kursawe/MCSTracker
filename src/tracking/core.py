@@ -518,13 +518,180 @@ class PostProcessor():
 #         for connected_component_one in connected_components_in_network_one:
 #             self.altered_fill_in_by_adjacency(connected_component_one)
 
-        self.altered_fill_in_by_adjacency( network_one )
+#         self.altered_fill_in_by_adjacency( network_one )
+        
+        self.stable_fill_in_by_adjacency()
 
-        self.resolve_division_events()
+#         self.resolve_division_events()
         self.index_global_ids()
+        
+#         assert( 56 in self.preliminary_mappings )
+#         assert( 53 in self.preliminary_mappings )
+#         assert( 57 in self.preliminary_mappings )
+        print self.preliminary_mappings
         
         return self.mapped_ids
    
+    def stable_fill_in_by_adjacency(self):
+        
+        print 'starting to fill in'
+        self.make_connectivity_vector()
+        print 'made connectivity vector'
+        
+        print 'starting the search'
+#         for neighbour_number_difference in range(10):
+        mapping_has_changed = True
+        while mapping_has_changed:
+            old_mapping = self.preliminary_mappings.copy()
+            self.already_inspected_cells = np.zeros_like(self.connectivity_vector, dtype = 'bool')
+            while self.check_mapping_is_extendible():
+                print 'mapping is extendible'
+                self.maximal_actual_connectivity = 0
+                self.current_best_match = None
+                self.actual_connectivity_tested = np.zeros_like( self.connectivity_vector, dtype = 'bool' )
+                while ( self.get_maximal_connectivity() > self.maximal_actual_connectivity and
+                        self.get_maximal_connectivity() > 1 ):
+                    next_frame_id = self.pick_next_cell()
+                    mapping_candidate, actual_connectivity = self.alternative_find_safe_mapping_candidate_for_single_cell( next_frame_id )
+                    element_index = self.mesh_one.frame_id_dictionary[next_frame_id]
+                    self.actual_connectivity_tested[element_index] = True
+                    if mapping_candidate is not None:
+                        if actual_connectivity > self.maximal_actual_connectivity:
+                            self.maximal_actual_connectivity = actual_connectivity
+                            self.current_best_match = ( next_frame_id, mapping_candidate )
+                    else:
+                        self.already_inspected_cells[element_index] = True
+                if self.current_best_match is not None:
+                    self.extend_preliminary_mapping( self.current_best_match[0], self.current_best_match[1] )
+
+            if self.preliminary_mappings == old_mapping:
+                mapping_has_changed = False
+            else:
+                mapping_has_changed = True
+                
+        ## possible new outline
+ 
+    def get_maximal_connectivity(self):
+        not_yet_visited_cells = np.logical_and( self.already_inspected_cells == False, self.actual_connectivity_tested == False )
+        maximal_connectivity = np.max( self.connectivity_vector[not_yet_visited_cells])
+        return maximal_connectivity
+
+    def pick_next_cell(self):
+        maximal_connectivity = self.get_maximal_connectivity()
+        assert(maximal_connectivity > 1)
+        not_yet_visited_cells = np.logical_and( self.already_inspected_cells == False, self.actual_connectivity_tested == False )
+        possible_indices = np.where( np.logical_and(self.connectivity_vector == maximal_connectivity,
+                                                    not_yet_visited_cells ) )
+        next_frame_id = self.mesh_one.elements[possible_indices[0][0]].id_in_frame
+
+        print 'next frame id is'
+        print next_frame_id
+        centroid_position = self.mesh_one.elements[possible_indices[0][0]].calculate_centroid()
+        new_centroid_position = np.array(centroid_position)
+        new_centroid_position[1] = 326 - centroid_position[1]
+        print new_centroid_position
+        print self.mesh_one.elements[possible_indices[0][0]].get_num_nodes()
+        return next_frame_id
+    
+    def check_mapping_is_extendible(self):
+        mapping_is_extendible = np.sum(np.logical_and( self.already_inspected_cells == False, 
+                                                       self.connectivity_vector > 1 )) > 0
+
+        return mapping_is_extendible
+    
+    def make_connectivity_vector(self):
+        
+        connectivity_vector = np.zeros(self.mesh_one.get_num_elements(), dtype = 'int')
+        for counter, element in enumerate(self.mesh_one.elements):
+            if element.global_id == None:
+                full_set_of_currently_mapped_neighbours = self.mesh_one.get_already_mapped_adjacent_element_ids( element.id_in_frame ) 
+                connectivity_vector[counter] = len(full_set_of_currently_mapped_neighbours)
+            else:
+                connectivity_vector[counter] = 0
+        
+        self.connectivity_vector = connectivity_vector
+
+    def extend_preliminary_mapping(self, next_frame_id, mapping_candidate):
+
+        centroid_position = self.mesh_two.get_element_with_frame_id(mapping_candidate).calculate_centroid()
+        new_centroid_position = np.array(centroid_position)
+        new_centroid_position[1] = 326 - centroid_position[1]
+        print 'mapping candidate position'
+        print new_centroid_position
+        print self.mesh_two.get_element_with_frame_id(mapping_candidate).get_num_nodes()
+
+        assert(next_frame_id not in self.preliminary_mappings)
+        self.preliminary_mappings[next_frame_id] = mapping_candidate
+        print 'list of frame ids in preliminary mappings'
+        print self.preliminary_mappings.keys()
+        new_neighbour_ids = self.mesh_one.get_not_yet_mapped_shared_neighbour_ids( [next_frame_id],
+                                                                                   self.preliminary_mappings.keys() )
+
+        element_index = self.mesh_one.frame_id_dictionary[next_frame_id]
+        self.connectivity_vector[element_index] = 0
+        for neighbour_id in new_neighbour_ids:
+            element_index = self.mesh_one.frame_id_dictionary[neighbour_id]
+            self.connectivity_vector[element_index] += 1
+            self.already_inspected_cells[element_index] = False
+
+    def alternative_find_safe_mapping_candidate_for_single_cell(self, frame_id ):
+        print 'entered new function'
+        mapping_candidate = None
+        element_one = self.mesh_one.get_element_with_frame_id(frame_id)
+        if ( frame_id not in self.preliminary_mappings ):
+            print 'on my way, finding currently mapped neighbours'
+            full_set_of_currently_mapped_neighbours = self.mesh_one.get_already_mapped_adjacent_element_ids( frame_id, 
+                                                                                                             self.preliminary_mappings.keys() )
+            # get mapping candidates by all shared neighbours of currently mapped neighbours
+            images_of_already_mapped_neighbours = self.get_multiple_images( full_set_of_currently_mapped_neighbours, 
+                                                                            self.preliminary_mappings )
+            mapping_candidates = self.mesh_two.get_not_yet_mapped_shared_neighbour_ids( images_of_already_mapped_neighbours,
+                                                                                        self.preliminary_mappings.values() )
+            print 'found these mapping candidates'
+            print mapping_candidates
+            full_neighbour_number = len( full_set_of_currently_mapped_neighbours )
+            current_neighbour_number = len( full_set_of_currently_mapped_neighbours )
+            if len(mapping_candidates) == 0:
+                mapping_candidates = set()
+                old_reduced_image_sets = [images_of_already_mapped_neighbours]
+                while ( ( len(mapping_candidates) == 0 ) and 
+                        ( current_neighbour_number > 2 ) ):
+                    # They don't have a shared neighbour, see whether we can get better mapping candidates if we take one of the
+                    # mapped neighbours out to allow for rearrangement 
+                    new_reduced_image_sets = []
+                    for image_set in old_reduced_image_sets:
+                        for image in image_set:
+                            reduced_images_of_already_mapped_neighbours = [item for item in image_set
+                                                                           if item != image ]
+#                             print reduced_images_of_already_mapped_neighbours
+#                             assert( len(reduced_images_of_already_mapped_neighbours) >= min_neighbour_number )
+                            mapping_candidates.update( self.mesh_two.get_not_yet_mapped_shared_neighbour_ids( reduced_images_of_already_mapped_neighbours,
+                                                                                                              self.preliminary_mappings.values() ))
+                            new_reduced_image_sets.append(list(reduced_images_of_already_mapped_neighbours))
+                    current_neighbour_number = current_neighbour_number - 1
+                    old_reduced_image_sets = list(new_reduced_image_sets)
+        
+            filtered_mapping_candidates = []
+            for candidate in mapping_candidates:
+                additional_neighbour_count = self.get_additional_neighbour_count( candidate, images_of_already_mapped_neighbours,
+                                                                                  self.preliminary_mappings.values() )
+                print 'additional neighbour count is'
+                print additional_neighbour_count
+                element_two = self.mesh_two.get_element_with_frame_id(candidate)
+#                 if additional_neighbour_count < 3 and additional_neighbour_count < min_neighbour_number and polygon_numbers_add_up:
+#                 if additional_neighbour_count <= neighbour_number_difference:
+#                 if additional_neighbour_count < current_neighbour_number - 1:
+                if additional_neighbour_count < full_neighbour_number - 1:
+                    print 'extending filtered mapping_candidates'
+                    filtered_mapping_candidates.append( candidate )
+
+            print 'the filtered mapping candidates are'
+            print filtered_mapping_candidates
+            if len(filtered_mapping_candidates) == 1:
+                mapping_candidate = filtered_mapping_candidates[0]
+                    
+        return mapping_candidate, current_neighbour_number
+    
     def find_safe_mapping_candidate_for_single_cell(self, frame_id, preliminary_mapping, min_neighbour_number = 3 ):
         """Finds a mapping candidate for the cell with frame_id
         

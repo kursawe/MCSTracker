@@ -1544,6 +1544,9 @@ class Mesh():
                     cv2.putText(overlay_image, str(element.global_id), tuple(centroid_image_coordinates.astype('int')),
                                 cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, fontScale = 0.2, 
                                 color = (0,0,0) )
+#                     cv2.putText( overlay_image, str(element.id_in_frame), tuple(centroid_image_coordinates.astype('int')),
+#                                  cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, fontScale = 0.2, 
+#                                  color = (0,0,0) )
                 except:
                     pass
 #                 overlay_image[this_mask] = real_image_converted[this_mask]
