@@ -1289,8 +1289,9 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             old_id_map = tracking_state.id_map.copy()
             while subgraph_is_extendible:
                 vertex = self.pick_next_vertex(tracking_state, is_global = True )
-#                 if self.network_one.nodes()[vertex] == 0:
-#                     print 'trying to map frame id 0'
+#                 if self.network_one.nodes()[vertex] == 229:
+#                     import pdb; pdb.set_trace();
+#                     print 'trying to map frame id 240'
                     
     #             print 'mapping vertex at position'
     #             print self.network_one.node[self.network_one.nodes()[vertex]]['position']
@@ -1436,11 +1437,16 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             mapping hast its neighbours matched in the correct rotational order
         """
         vertex_id = self.network_one_node_iterator[vertex]
+#         if vertex_id == 229:
+#             import pdb; pdb.set_trace()
         ## get neighbour of vertex with maximal tracked neighbours in first largest mapping
         for largest_mapping in self.largest_mappings:
             # get mapped neighbours
             already_mapped_elements = largest_mapping.keys()
             mapped_neighbours = self.mesh_one.get_already_mapped_adjacent_element_ids(vertex_id, already_mapped_elements)
+            mapped_neighbours.append(vertex_id)
+            print 'mapped neighbours are'
+            print mapped_neighbours
             for neighbour_id in mapped_neighbours:
                 is_in_order = self.check_neighbours_are_mapped_in_order( neighbour_id, largest_mapping )
                 if not is_in_order:
@@ -1487,9 +1493,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         first_already_mapped_neighbours = self.mesh_one.get_already_mapped_adjacent_element_ids( frame_id, 
                                                                                                  already_mapped_elements )
 
-        mapped_neighbour_element_ids = []
-        for this_id in first_already_mapped_neighbours:
-            mapped_neighbour_element_ids.append( id_map[this_id] )
+        mapped_neighbour_element_ids = [ id_map[this_id] for this_id in first_already_mapped_neighbours ]
 
         image_frame_id = id_map[frame_id]
         already_mapped_elements_images = id_map.values()
@@ -1499,15 +1503,74 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         # The next bit is from stackoverflow: a quick comparision whether two integer lists are in same circular order 
         # http://stackoverflow.com/questions/26924836/how-to-check-whether-two-lists-are-circularly-identical-in-python
 
-        str1 = ' '.join(map(str, second_already_mapped_neighbours))
-        str2 = ' '.join(map(str, mapped_neighbour_element_ids))
-        
-        is_ordered = str1 in str2 + ' ' + str2
+#         str1 = ' '.join(map(str, second_already_mapped_neighbours))
+#         str2 = ' '.join(map(str, mapped_neighbour_element_ids))
+#         is_ordered = str1 in str2 + ' ' + str2
+
+        if frame_id == 240:
+            print 'booja!'
+        if len(mapped_neighbour_element_ids) != 2:
+            str1 = ' '.join(map(str, second_already_mapped_neighbours))
+            str2 = ' '.join(map(str, mapped_neighbour_element_ids))
+            is_ordered = str1 in str2 + ' ' + str2
+        else:
+            if self.network_one.has_edge(first_already_mapped_neighbours[0], first_already_mapped_neighbours[1]):
+                order_one = self.get_two_ordered_neighbour_ids_of_element( self.mesh_one, frame_id, already_mapped_elements )
+                order_one_images = [ id_map[this_id] for this_id in order_one ] 
+                order_two = self.get_two_ordered_neighbour_ids_of_element( self.mesh_two, image_frame_id, already_mapped_elements_images )
+                is_ordered = ( order_one_images == order_two )
+                if is_ordered:
+                    if frame_id == 240:
+                        print 'booja!'
+                    print 'two elements can, indeed, be ordered!'
+            else:
+                is_ordered = True
 
 #         if not is_ordered:
 #             import pdb; pdb.set_trace()
 
         return is_ordered   
+
+    def get_two_ordered_neighbour_ids_of_element(self, this_mesh, frame_id, already_mapped_frame_ids):
+
+        this_element = this_mesh.get_element_with_frame_id( frame_id )
+
+        all_adjacent_elements = this_element.get_ids_of_adjacent_elements()
+        
+        # find first index
+        for neighbour_counter, adjacent_frame_id in enumerate( all_adjacent_elements ):
+            if adjacent_frame_id in already_mapped_frame_ids:
+                first_index = neighbour_counter
+                first_frame_id = adjacent_frame_id
+                break
+        
+        # second_index
+        for neighbour_counter, adjacent_frame_id in enumerate( all_adjacent_elements ):
+            if adjacent_frame_id in already_mapped_frame_ids and neighbour_counter > first_index:
+                second_index = neighbour_counter
+                second_frame_id = adjacent_frame_id
+                break
+
+        if ( first_index == 0 and second_index == (len(all_adjacent_elements) -1 ) ):
+            ordered_frame_ids = [ second_frame_id, first_frame_id ]
+        else:
+            ordered_frame_ids = [first_frame_id, second_frame_id]
+        
+        return ordered_frame_ids
+#         starting_point = -1
+#         for neighbour_counter, adjacent_frame_id in enumerate( all_adjacent_elements ):
+#             if adjacent_frame_id in already_mapped_frame_ids:
+#                 mapped_ids.append( adjacent_frame_id )
+#                 if starting_point == -1:
+#                     starting_point = neighbour_counter
+#  
+#         if starting_point == 0:
+#             new_mapped_ids = [ mapped_ids[-1] ] + mapped_ids[1:]
+#         else:
+#             new_mapped_ids = mapped_ids
+#             
+#         assert( len(new_mapped_ids) == 2 )
+#         return new_mapped_ids
 
     def extend_tracking_state(self, tracking_state, vertex_one, vertex_two):
         """Create an new tracking state, where tracking state is extended by the mapping from current_vertex 

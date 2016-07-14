@@ -37,7 +37,7 @@ class TestTrackCropstack(unittest.TestCase):
                                                      '..','test_mesh','output','converted'),
                                            path.join(dirname(__file__),
                                                      'output','crostack_track'),
-                                           start_number = 5, number_meshes = 6 ) 
+                                           start_number = 1, number_meshes = 21 ) 
         
     def test_visualize_sequence(self):
         tracking.plot_tracked_sequence( path.join(dirname(__file__),

@@ -538,38 +538,91 @@ class PostProcessor():
         self.make_connectivity_vector()
         print 'made connectivity vector'
         
-        print 'starting the search'
-#         for neighbour_number_difference in range(10):
-        mapping_has_changed = True
-        while mapping_has_changed:
-            old_mapping = self.preliminary_mappings.copy()
+#         print 'starting the search'
+# #         for neighbour_number_difference in range(10):
+#         mapping_has_changed = True
+#         while mapping_has_changed:
+#             old_mapping = self.preliminary_mappings.copy()
+#             self.already_inspected_cells = np.zeros_like(self.connectivity_vector, dtype = 'bool')
+#             while self.check_mapping_is_extendible():
+#                 print 'mapping is extendible'
+#                 self.maximal_actual_connectivity = 0
+#                 self.current_best_match = None
+#                 self.actual_connectivity_tested = np.zeros_like( self.connectivity_vector, dtype = 'bool' )
+#                 while ( self.get_maximal_connectivity() > self.maximal_actual_connectivity and
+#                         self.get_maximal_connectivity() > 1 ):
+#                     next_frame_id = self.pick_next_cell()
+#                     mapping_candidate, actual_connectivity = self.alternative_find_safe_mapping_candidate_for_single_cell( next_frame_id )
+#                     element_index = self.mesh_one.frame_id_dictionary[next_frame_id]
+#                     self.actual_connectivity_tested[element_index] = True
+#                     if mapping_candidate is not None:
+#                         if actual_connectivity > self.maximal_actual_connectivity:
+#                             self.maximal_actual_connectivity = actual_connectivity
+#                             self.current_best_match = ( next_frame_id, mapping_candidate )
+#                     else:
+#                         self.already_inspected_cells[element_index] = True
+#                 if self.current_best_match is not None:
+#                     self.extend_preliminary_mapping( self.current_best_match[0], self.current_best_match[1] )
+#  
+#             if self.preliminary_mappings == old_mapping:
+#                 mapping_has_changed = False
+#             else:
+#                 mapping_has_changed = True
+#                 
+        ## possible new outline
+        extension_found_with_relaxed_condition = True
+        while extension_found_with_relaxed_condition:
+            mapping_has_changed = True
+            while mapping_has_changed:
+                old_mapping = self.preliminary_mappings.copy()
+                self.already_inspected_cells = np.zeros_like(self.connectivity_vector, dtype = 'bool')
+                while self.check_mapping_is_extendible():
+                    print 'mapping is extendible'
+                    self.maximal_actual_connectivity = 0
+                    self.current_best_match = None
+                    self.actual_connectivity_tested = np.zeros_like( self.connectivity_vector, dtype = 'bool' )
+                    while ( self.get_maximal_connectivity() > self.maximal_actual_connectivity and
+                            self.get_maximal_connectivity() > 1 ):
+                        next_frame_id = self.pick_next_cell()
+                        mapping_candidate, actual_connectivity = self.alternative_find_safe_mapping_candidate_for_single_cell( next_frame_id )
+                        element_index = self.mesh_one.frame_id_dictionary[next_frame_id]
+                        self.actual_connectivity_tested[element_index] = True
+                        if mapping_candidate is not None:
+                            if actual_connectivity > self.maximal_actual_connectivity:
+                                self.maximal_actual_connectivity = actual_connectivity
+                                self.current_best_match = ( next_frame_id, mapping_candidate )
+                        else:
+                            self.already_inspected_cells[element_index] = True
+                    if self.current_best_match is not None:
+                        self.extend_preliminary_mapping( self.current_best_match[0], self.current_best_match[1] )
+  
+                if self.preliminary_mappings == old_mapping:
+                    mapping_has_changed = False
+                else:
+                    mapping_has_changed = True
+                  
             self.already_inspected_cells = np.zeros_like(self.connectivity_vector, dtype = 'bool')
-            while self.check_mapping_is_extendible():
-                print 'mapping is extendible'
-                self.maximal_actual_connectivity = 0
-                self.current_best_match = None
-                self.actual_connectivity_tested = np.zeros_like( self.connectivity_vector, dtype = 'bool' )
-                while ( self.get_maximal_connectivity() > self.maximal_actual_connectivity and
-                        self.get_maximal_connectivity() > 1 ):
-                    next_frame_id = self.pick_next_cell()
-                    mapping_candidate, actual_connectivity = self.alternative_find_safe_mapping_candidate_for_single_cell( next_frame_id )
-                    element_index = self.mesh_one.frame_id_dictionary[next_frame_id]
-                    self.actual_connectivity_tested[element_index] = True
-                    if mapping_candidate is not None:
-                        if actual_connectivity > self.maximal_actual_connectivity:
+            self.maximal_actual_connectivity = 0
+            self.current_best_match = None
+            self.actual_connectivity_tested = np.zeros_like( self.connectivity_vector, dtype = 'bool' )
+            while ( self.get_maximal_connectivity() > self.maximal_actual_connectivity and
+                    self.get_maximal_connectivity() > 1 ):
+                next_frame_id = self.pick_next_cell()
+                mapping_candidate, actual_connectivity = self.alternative_find_safe_mapping_candidate_for_single_cell( next_frame_id, relaxed_condition = True )
+                element_index = self.mesh_one.frame_id_dictionary[next_frame_id]
+                self.actual_connectivity_tested[element_index] = True
+                if mapping_candidate is not None:
+                        if actual_connectivity >= 2:
                             self.maximal_actual_connectivity = actual_connectivity
                             self.current_best_match = ( next_frame_id, mapping_candidate )
-                    else:
-                        self.already_inspected_cells[element_index] = True
-                if self.current_best_match is not None:
-                    self.extend_preliminary_mapping( self.current_best_match[0], self.current_best_match[1] )
-
-            if self.preliminary_mappings == old_mapping:
-                mapping_has_changed = False
+                else:
+                    self.already_inspected_cells[element_index] = True
+            if self.current_best_match is not None:
+                self.extend_preliminary_mapping( self.current_best_match[0], self.current_best_match[1] )
+                extension_not_yet_found = False
+                extension_found_with_relaxed_condition = True
             else:
-                mapping_has_changed = True
-                
-        ## possible new outline
+                extension_found_with_relaxed_condition = False
  
     def get_maximal_connectivity(self):
         not_yet_visited_cells = np.logical_and( self.already_inspected_cells == False, self.actual_connectivity_tested == False )
@@ -634,7 +687,7 @@ class PostProcessor():
             self.connectivity_vector[element_index] += 1
             self.already_inspected_cells[element_index] = False
 
-    def alternative_find_safe_mapping_candidate_for_single_cell(self, frame_id ):
+    def alternative_find_safe_mapping_candidate_for_single_cell(self, frame_id, relaxed_condition = False ):
         print 'entered new function'
         mapping_candidate = None
         element_one = self.mesh_one.get_element_with_frame_id(frame_id)
@@ -649,6 +702,8 @@ class PostProcessor():
                                                                                         self.preliminary_mappings.values() )
             print 'found these mapping candidates'
             print mapping_candidates
+            print 'currently mapped neighbours are'
+            print full_set_of_currently_mapped_neighbours
             full_neighbour_number = len( full_set_of_currently_mapped_neighbours )
             current_neighbour_number = len( full_set_of_currently_mapped_neighbours )
             if len(mapping_candidates) == 0:
@@ -681,9 +736,14 @@ class PostProcessor():
 #                 if additional_neighbour_count < 3 and additional_neighbour_count < min_neighbour_number and polygon_numbers_add_up:
 #                 if additional_neighbour_count <= neighbour_number_difference:
 #                 if additional_neighbour_count < current_neighbour_number - 1:
-                if additional_neighbour_count < full_neighbour_number - 1:
-                    print 'extending filtered mapping_candidates'
-                    filtered_mapping_candidates.append( candidate )
+                if relaxed_condition:
+                    if additional_neighbour_count < full_neighbour_number:
+                        print 'extending filtered mapping_candidates'
+                        filtered_mapping_candidates.append( candidate )
+                else:
+                    if additional_neighbour_count < full_neighbour_number - 1:
+                        print 'extending filtered mapping_candidates'
+                        filtered_mapping_candidates.append( candidate )
 
             print 'the filtered mapping candidates are'
             print filtered_mapping_candidates
@@ -833,7 +893,7 @@ class PostProcessor():
         
         self.extend_current_preliminary_mapping(connected_component_one, preliminary_mapping, minimal_number_of_neighbours=4)
         self.extend_current_preliminary_mapping(connected_component_one, preliminary_mapping, minimal_number_of_neighbours=3)
-#         self.extend_current_preliminary_mapping(connected_component_one, preliminary_mapping, minimal_number_of_neighbours=2)
+        self.extend_current_preliminary_mapping(connected_component_one, preliminary_mapping, minimal_number_of_neighbours=2)
 #         self.extend_current_preliminary_mapping(connected_component_one, preliminary_mapping, minimal_number_of_neighbours=1)
                 
         return preliminary_mapping
@@ -886,16 +946,27 @@ class PostProcessor():
         """This function resets all global id's that only have one connection to the current maximum common subgraph, or
            two isolated connections.
         """
-        for element in self.mesh_one.elements:
+        isolated_vector = np.zeros( len(self.mesh_one.elements), dtype = 'bool' )
+        for element_counter, element in enumerate( self.mesh_one.elements ):
             if element.global_id != None:
 #                 if element.global_id == 166:
 #                     import pdb; pdb.set_trace()
-                if self.is_isolated(element):
-                    this_global_id = element.global_id
-                    self.mesh_two.get_element_with_global_id(this_global_id).global_id = None
-                    element.global_id = None   
-                    del self.largest_mappings[0][element.id_in_frame]
-                    self.mapped_ids.remove(this_global_id)
+                if self.is_isolated( element ):
+                    isolated_vector[ element_counter ] = True
+                mapped_neighbours = self.mesh_one.get_already_mapped_adjacent_element_ids( element.id_in_frame )
+                if len(mapped_neighbours) == 2:
+                    first_neighbour_element = self.mesh_one.get_element_with_frame_id( mapped_neighbours[0] )
+                    second_neighbour_element = self.mesh_one.get_element_with_frame_id( mapped_neighbours[1] )
+                    if self.is_isolated(first_neighbour_element) or self.is_isolated(second_neighbour_element):
+                        isolated_vector[element_counter] = True 
+                    
+        for element_counter, element in enumerate( self.mesh_one.elements ):
+            if isolated_vector[ element_counter ]:
+                this_global_id = element.global_id
+                self.mesh_two.get_element_with_global_id(this_global_id).global_id = None
+                element.global_id = None   
+                del self.largest_mappings[0][element.id_in_frame]
+                self.mapped_ids.remove(this_global_id)
                     
         # index the change
         self.mesh_one.index_global_ids()
@@ -954,6 +1025,18 @@ class PostProcessor():
             is_isolated = True
         elif len( already_mapped_adjacent_elements ) == 2:
             if not self.network_one.has_edge( already_mapped_adjacent_elements[0], already_mapped_adjacent_elements[1]):
+                is_isolated = True
+            else:
+                is_isolated = False
+        elif len( already_mapped_adjacent_elements ) == 3:
+            number_edges = 0
+            if self.network_one.has_edge( already_mapped_adjacent_elements[0], already_mapped_adjacent_elements[1]):
+                number_edges+=1
+            if self.network_one.has_edge( already_mapped_adjacent_elements[1], already_mapped_adjacent_elements[2]):
+                number_edges+=1
+            if self.network_one.has_edge( already_mapped_adjacent_elements[0], already_mapped_adjacent_elements[2]):
+                number_edges+=1
+            if number_edges < 2:
                 is_isolated = True
             else:
                 is_isolated = False
