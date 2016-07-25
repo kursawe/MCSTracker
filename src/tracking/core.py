@@ -11,6 +11,7 @@ from mesh.in_out import _natural_keys
 import glob
 import copy
 import warnings
+from networkx.algorithms.components.connected import connected_component_subgraphs
 
 def track(mesh_one, mesh_two):
     """Find a mapping between the cell ids in both frames and assigns the global ids accordingly.
@@ -959,18 +960,26 @@ class PostProcessor():
                     second_neighbour_element = self.mesh_one.get_element_with_frame_id( mapped_neighbours[1] )
                     if self.is_isolated(first_neighbour_element) or self.is_isolated(second_neighbour_element):
                         isolated_vector[element_counter] = True 
-                    
-        for element_counter, element in enumerate( self.mesh_one.elements ):
-            if isolated_vector[ element_counter ]:
-                this_global_id = element.global_id
-                self.mesh_two.get_element_with_global_id(this_global_id).global_id = None
-                element.global_id = None   
-                del self.largest_mappings[0][element.id_in_frame]
-                self.mapped_ids.remove(this_global_id)
-                    
-        # index the change
-        self.mesh_one.index_global_ids()
-        self.mesh_two.index_global_ids()
+                     
+        self.remove_global_ids_by_boolean_mask(isolated_vector)
+             
+        isolated_vector[:] = False
+        # Now, let's deal with connected components
+
+        network_one = self.mesh_one.generate_network_of_identified_elements()
+
+        connected_components_in_network_one = list( nx.connected_component_subgraphs(network_one) )
+        
+#         import pdb; pdb.set_trace()
+        for connected_component in connected_components_in_network_one:
+            if len(connected_component) < 10:
+                print 'got here'
+                for frame_id in connected_component:
+                    print 'and here too!'
+                    index = self.mesh_one.frame_id_dictionary[frame_id]
+                    isolated_vector[index] = True
+ 
+        self.remove_global_ids_by_boolean_mask(isolated_vector)
 
         # currently, the mapped ids are not a continuous count, let's change that
         new_mapped_ids = []
@@ -978,13 +987,13 @@ class PostProcessor():
             self.mesh_one.get_element_with_global_id(mapped_id).global_id = counter
             self.mesh_two.get_element_with_global_id(mapped_id).global_id = counter
             new_mapped_ids.append(counter)
-    
+     
         # index the change
         self.mesh_one.index_global_ids()
         self.mesh_two.index_global_ids()
-        
+         
         self.mapped_ids = new_mapped_ids
-        
+#         
         # apply reduced_mcs flags:
         for element in self.mesh_one.elements:
             if element.global_id in self.mapped_ids:
@@ -998,6 +1007,27 @@ class PostProcessor():
             else:
                 element.is_in_reduced_mcs_previous = False
                 
+    def remove_global_ids_by_boolean_mask(self, boolean_mask):
+        """Remove global ids from all elements for which boolean_map is True
+        
+        Parameters
+        ----------
+        
+        boolean_map : nd_array, dtype = 'bool'
+            mask for elements in the mesh_one elements vector for which we plan to remove the global ids
+        """
+        for element_counter, element in enumerate( self.mesh_one.elements ):
+            if boolean_mask[ element_counter ]:
+                this_global_id = element.global_id
+                self.mesh_two.get_element_with_global_id(this_global_id).global_id = None
+                element.global_id = None   
+                del self.largest_mappings[0][element.id_in_frame]
+                self.mapped_ids.remove(this_global_id)
+                     
+        # index the change
+        self.mesh_one.index_global_ids()
+        self.mesh_two.index_global_ids()
+
     def is_isolated(self, element):
         """This function determines whether the element is isolated in mesh_one or not.
         

@@ -451,7 +451,42 @@ class Mesh():
         complete_network.remove_nodes_from( nodes_to_remove )
         
         return complete_network
+
+    def generate_network_of_identified_elements(self, identified_elements = [] ):
+        """Returns a network of all nodes that have not yet been identified
+        
+        Parameters
+        ----------
+        
+        identified_elements : list of ints
+            frame_ids in the network that have been identified but may not have
+            a global id
+
+        Returns
+        -------
+        
+        unidentified_network : networkx Graph instance
+            network of all elements that have global_id == None and are not contained in 
+            identified_elements
             
+        See also
+        --------
+        
+        generate_network()
+        """
+        
+        complete_network = self.generate_network()
+        
+        nodes_to_remove = []
+        for node in complete_network.nodes():
+            if ( self.get_element_with_frame_id(node).global_id is None and 
+                 node not in identified_elements):
+                nodes_to_remove.append(node)
+                
+        complete_network.remove_nodes_from( nodes_to_remove )
+        
+        return complete_network
+           
     def calculate_width(self):
         """Calculate the width of the network
         
