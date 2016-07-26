@@ -523,7 +523,7 @@ class PostProcessor():
         
         self.stable_fill_in_by_adjacency()
 
-#         self.resolve_division_events()
+        self.resolve_division_events()
         self.index_global_ids()
         
 #         assert( 56 in self.preliminary_mappings )
@@ -981,18 +981,7 @@ class PostProcessor():
  
         self.remove_global_ids_by_boolean_mask(isolated_vector)
 
-        # currently, the mapped ids are not a continuous count, let's change that
-        new_mapped_ids = []
-        for counter, mapped_id in enumerate(self.mapped_ids):
-            self.mesh_one.get_element_with_global_id(mapped_id).global_id = counter
-            self.mesh_two.get_element_with_global_id(mapped_id).global_id = counter
-            new_mapped_ids.append(counter)
-     
-        # index the change
-        self.mesh_one.index_global_ids()
-        self.mesh_two.index_global_ids()
-         
-        self.mapped_ids = new_mapped_ids
+        self.reindex_global_ids()
 #         
         # apply reduced_mcs flags:
         for element in self.mesh_one.elements:
@@ -1007,6 +996,20 @@ class PostProcessor():
             else:
                 element.is_in_reduced_mcs_previous = False
                 
+    def reindex_global_ids(self):
+        # currently, the mapped ids are not a continuous count, let's change that
+        new_mapped_ids = []
+        for counter, mapped_id in enumerate(self.mapped_ids):
+            self.mesh_one.get_element_with_global_id(mapped_id).global_id = counter
+            self.mesh_two.get_element_with_global_id(mapped_id).global_id = counter
+            new_mapped_ids.append(counter)
+     
+        # index the change
+        self.mesh_one.index_global_ids()
+        self.mesh_two.index_global_ids()
+         
+        self.mapped_ids = new_mapped_ids
+
     def remove_global_ids_by_boolean_mask(self, boolean_mask):
         """Remove global ids from all elements for which boolean_map is True
         
@@ -1183,6 +1186,7 @@ class PostProcessor():
         """add the preliminary mapping to the meshes, i.e. fill in the global ids
         for all mapped cells"""
 
+#         import pdb; pdb.set_trace()
         for element_one_id in self.preliminary_mappings:
             current_maximal_global_id = max( self.mapped_ids )
             new_global_id = current_maximal_global_id + 1
@@ -1196,6 +1200,10 @@ class PostProcessor():
         
         self.mesh_one.index_global_ids()
         self.mesh_two.index_global_ids()
+        print self.mapped_ids
+#         import pdb; pdb.set_trace()
+        
+        self.reindex_global_ids()
         
     def index_global_ids_from_largest_mappings(self):
         """Index global ids using all mappings that are contained in all largest mappings"""
@@ -1240,12 +1248,25 @@ class PostProcessor():
             subgraph of the network corresponding to mesh_two
         """
         
+        print 'I am resolving this division event. Like, totally!'
         mappings_based_on_adjacency = self.altered_get_mappings_by_adjacency(connected_component_one)
+
 #        mappings_based_on_adjacency = self.get_mappings_by_adjacency(connected_component_one, connected_component_two)
         
         bordering_cells_mapping = self.find_bordering_cells_of_division( mappings_based_on_adjacency )
+        if len(bordering_cells_mapping) == 2:
+            print 'found the bordering cells'
+        else:
+            print 'nope, these are the bordering cells, currently'
+            print bordering_cells_mapping
         
         potential_mother_cells = self.mesh_one.get_not_yet_mapped_shared_neighbour_ids( bordering_cells_mapping.keys() )
+
+        if len(potential_mother_cells) == 2:
+            print 'found the mother cells'
+        else:
+            print 'nope, these are the mother cells, currently'
+            print potential_mother_cells
         
         if len(potential_mother_cells) == 0:
             # In this case one of the daughter cells is triangular.
@@ -1258,30 +1279,36 @@ class PostProcessor():
             potential_daughter_cells += self.mesh_two.get_not_yet_mapped_shared_neighbour_ids( bordering_cells_mapping.values() ) 
             mother_cell, daughter_cells = self.identify_division_event(new_potential_mother_cells, potential_daughter_cells,
                                                                   mappings_based_on_adjacency)
-
+ 
             connected_component_one.remove_node( mother_cell )
             connected_component_two.remove_nodes_from( daughter_cells )
-
+ 
             self.altered_fill_in_by_adjacency( connected_component_one )
-
+ 
         elif len(potential_mother_cells) == 1:
             potential_mother_cell = potential_mother_cells[0]
             if potential_mother_cell in mappings_based_on_adjacency:
                 del mappings_based_on_adjacency[potential_mother_cell]
-
-            self.preliminary_mappings = mappings_based_on_adjacency
+            for frame_id in mappings_based_on_adjacency:
+                self.preliminary_mappings[frame_id] = mappings_based_on_adjacency[frame_id]
         else:
             potential_daughter_cells = self.mesh_two.get_not_yet_mapped_shared_neighbour_ids( bordering_cells_mapping.values() )
+            print 'potential daughter cells are'
+            print potential_daughter_cells
 #             assert ( len(potential_daughter_cells) > 1)
             if len( potential_daughter_cells ) <= 1 :
                 raise Exception("could not resolve division event")
             elif len(potential_daughter_cells) == 3:
                 mother_cell, daughter_cells = self.identify_division_event(potential_mother_cells, potential_daughter_cells,
                                                                       mappings_based_on_adjacency)
-
+ 
                 connected_component_one.remove_node( mother_cell )
                 connected_component_two.remove_nodes_from( daughter_cells )
-
+ 
+                print 'mother cell is'
+                print mother_cell
+                print 'daughter cells are'
+                print daughter_cells
                 self.fill_in_by_adjacency( connected_component_one )
             elif len(potential_daughter_cells) == 4 :
                 self.altered_fill_in_by_adjacency( connected_component_one )
@@ -1384,9 +1411,15 @@ class PostProcessor():
         """TODO: FILL THIS IN
         """
         
+#         for frame_one_id in self.largest_mappings[0]:
+#             self.preliminary_mappings[frame_one_id] = self.largest_mappings[0][frame_one_id]
+
+#         self.preliminary_mappings = copy.copy(self.largest_mappings[0])
         # first, identify any cells that are in network two but are not mapped
         network_two = self.mesh_two.generate_network_of_unidentified_elements(self.preliminary_mappings.values())
         connected_components_in_network_two = list( nx.connected_component_subgraphs(network_two) )
+        print 'regions with divisions are'
+        print connected_components_in_network_two
         for connected_component in connected_components_in_network_two:
             #check whether component is at mesh boundary:
             component_is_on_boundary = False
@@ -1395,8 +1428,10 @@ class PostProcessor():
                     component_is_on_boundary = True
                     break
             if not component_is_on_boundary:
+                print 'resolving division event not on boundary'
                 self.resolve_division_event_for_connected_component(connected_component)
 
+#         self.reindex_global_ids()
         # then, get all their neighbouring cells, and all inverse images of neighbouring cells
         # make a connected component out of both
         # remove both from preliminary mappings
@@ -1411,33 +1446,65 @@ class PostProcessor():
             this_element = self.mesh_two.get_element_with_frame_id(node)
             if not this_element.check_if_on_boundary():
                 adjacent_elements += this_element.get_ids_of_adjacent_elements() 
+            else:
+                print 'element to remove is on boundary'
         
         unique_adjacent_elements = np.unique(np.array(adjacent_elements))
         
-        unmapped_adjacent_elements = list(set(unique_adjacent_elements).intersection( self.preliminary_mappings.values() ))
+        preliminary_adjacent_elements = list(set(unique_adjacent_elements).intersection( self.preliminary_mappings.values() ))
+        mcs_adjacent_elements = list(set(unique_adjacent_elements).intersection( self.largest_mappings[0].values() ))
         
         # collect cells for connected_component_one
         inverse_preliminary_mapping = { value : key for key, value in self.preliminary_mappings.items() }
+        inverse_largest_mapping = { value : key for key, value in self.largest_mappings[0].items() }
 
-        inverse_images_of_unmapped_adjacent_elements = [ inverse_preliminary_mapping[frame_id] for
-                                                         frame_id in unmapped_adjacent_elements]
+        inverse_images_of_preliminary_adjacent_elements = [ inverse_preliminary_mapping[frame_id] for
+                                                            frame_id in preliminary_adjacent_elements]
         
+        inverse_images_of_mcs_adjacent_elements = [ inverse_largest_mapping[frame_id] for
+                                                    frame_id in mcs_adjacent_elements]
+
         unmapped_elements_belonging_to_connected_component_in_network_one = []
 
-        for element_id in inverse_images_of_unmapped_adjacent_elements:
+        for element_id in inverse_images_of_preliminary_adjacent_elements:
+            unmapped_elements_belonging_to_connected_component_in_network_one += self.mesh_one.get_not_yet_mapped_shared_neighbour_ids([element_id])
+
+        for element_id in inverse_images_of_mcs_adjacent_elements:
             unmapped_elements_belonging_to_connected_component_in_network_one += self.mesh_one.get_not_yet_mapped_shared_neighbour_ids([element_id])
 
         unmapped_elements_belonging_to_connected_component_in_network_one = list(np.unique(np.array(unmapped_elements_belonging_to_connected_component_in_network_one)))
         
-        unmapped_elements_belonging_to_connected_component_in_network_one += inverse_images_of_unmapped_adjacent_elements
-        unmapped_elements_belonging_to_connected_component_in_network_two = [node for node in connected_component] + unmapped_adjacent_elements
+        unmapped_elements_belonging_to_connected_component_in_network_one += inverse_images_of_preliminary_adjacent_elements
+        unmapped_elements_belonging_to_connected_component_in_network_one += inverse_images_of_mcs_adjacent_elements
+        unmapped_elements_belonging_to_connected_component_in_network_two = [node for node in connected_component] + preliminary_adjacent_elements + mcs_adjacent_elements
         
         # remove the collected cells from the mapping
         old_mappings = dict()
-        for frame_id in inverse_images_of_unmapped_adjacent_elements:
-            old_mappings[frame_id] = self.preliminary_mappings[frame_id]
-            del( self.preliminary_mappings[frame_id] )
+        for frame_id in unmapped_elements_belonging_to_connected_component_in_network_one:
+            if frame_id in self.preliminary_mappings:
+                old_mappings[frame_id] = self.preliminary_mappings[frame_id]
+            elif frame_id in self.largest_mappings[0]:
+                old_mappings[frame_id] = self.largest_mappings[0][frame_id]
+            print 'remove cell at'
+            print self.mesh_one.get_element_with_frame_id(frame_id).calculate_centroid()
+            global_id = self.mesh_one.get_element_with_frame_id(frame_id).global_id
+            try:
+                print 'totally got here, too! 1'
+                self.mesh_two.get_element_with_global_id(global_id).global_id = None
+                self.mapped_ids.remove(global_id)
+                print 'totally got here, too!'
+            except KeyError:
+                pass
+            self.mesh_one.get_element_with_frame_id(frame_id).global_id = None
+            try:
+                del( self.preliminary_mappings[frame_id] )
+            except KeyError:
+                pass
             
+        self.mesh_one.index_global_ids()
+        self.mesh_two.index_global_ids()
+        print 'this is the prelim mapping'
+        print self.preliminary_mappings
         # make the connected components
         connected_component_one = self.network_one.subgraph( unmapped_elements_belonging_to_connected_component_in_network_one )
         connected_component_two = self.network_one.subgraph( unmapped_elements_belonging_to_connected_component_in_network_two )

@@ -132,7 +132,8 @@ class TestTrackGlobalMovements(unittest.TestCase):
                 ground_truth[element.id_in_frame] = mesh_two.elements[ground_truth_indices[element_index]].id_in_frame
          
         print 'call tracker'
-        tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
+        tracked_ids = tracking.track(mesh_one, mesh_two)
+#         tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
         print 'tracker returned'
   
         mesh_one.plot(path.join(dirname(__file__),'output', 'special_translation_mesh_one.pdf'), color_by_global_id = True, 
@@ -190,7 +191,8 @@ class TestTrackGlobalMovements(unittest.TestCase):
                 ground_truth[element.id_in_frame] = mesh_two.elements[ground_truth_indices[element_index]].id_in_frame
          
         print 'call tracker'
-        tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
+        tracked_ids = tracking.track(mesh_one, mesh_two)
+#         tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
         print 'tracker returned'
   
         mesh_one.plot(path.join(dirname(__file__),'output', 'translation_mesh_two_before.pdf'), color_by_global_id = True, 
@@ -242,7 +244,8 @@ class TestTrackGlobalMovements(unittest.TestCase):
             if element_index in ground_truth_indices:
                 ground_truth[element.id_in_frame] = mesh_two.elements[ground_truth_indices[element_index]].id_in_frame
          
-        tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
+#         tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
+        tracked_ids = tracking.track(mesh_one, mesh_two)
 
 #         subgraph_finder = tracking.ReducedBacktrackingSubgraphFinder(mesh_one, mesh_two)
 #         subgraph_finder.find_maximum_common_subgraph()
@@ -279,7 +282,7 @@ class TestTrackGlobalMovements(unittest.TestCase):
         network_one = mesh_one.generate_network()
         network_two = mesh_two.generate_network()
   
-        self.assertEqual( len(tracked_ids), len(ground_truth) )
+        self.assertEqual( len(tracked_ids), len(ground_truth) - 1 )
 
         for global_id in tracked_ids:
             element_one = mesh_one.get_element_with_global_id(global_id)
@@ -320,7 +323,8 @@ class TestTrackGlobalMovements(unittest.TestCase):
             if element_index in ground_truth_indices:
                 ground_truth[element.id_in_frame] = mesh_two.elements[ground_truth_indices[element_index]].id_in_frame
          
-        tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
+#         tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
+        tracked_ids = tracking.track(mesh_one, mesh_two)
 
 #         subgraph_finder = tracking.ReducedBacktrackingSubgraphFinder(mesh_one, mesh_two)
 #         subgraph_finder.find_maximum_common_subgraph()
@@ -400,7 +404,8 @@ class TestTrackGlobalMovements(unittest.TestCase):
         
  
         print 'call tracker'
-        tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
+#         tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
+        tracked_ids = tracking.track(mesh_one, mesh_two)
         print 'tracker returned'
   
         mesh_one.plot(path.join(dirname(__file__),'output','special_translation_mesh_six_before.pdf'),
@@ -470,7 +475,8 @@ class TestTrackGlobalMovements(unittest.TestCase):
         
  
         print 'call tracker'
-        tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
+#         tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
+        tracked_ids = tracking.track(mesh_one, mesh_two)
         print 'tracker returned'
   
         mesh_one.plot(path.join(dirname(__file__),'output','special_translation_mesh_seven_before.pdf'),
@@ -558,7 +564,8 @@ class TestTrackGlobalMovements(unittest.TestCase):
         
  
         print 'call tracker'
-        tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
+#         tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
+        tracked_ids = tracking.track(mesh_one, mesh_two)
         print 'tracker returned'
   
         mesh_one.plot(path.join(dirname(__file__),'output','special_translation_mesh_ten_before.pdf'),

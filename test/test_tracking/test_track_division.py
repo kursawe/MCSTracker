@@ -121,7 +121,35 @@ class TestTrackDivision(unittest.TestCase):
         mesh_two.divide_element_with_frame_id_in_direction(most_central_element.id_in_frame, [1.0, 1.0])
          
         tracked_ids = tracking.track( mesh_one, mesh_two )
-  
+
+#         tracked_ids = tracking.find_maximum_common_subgraph( mesh_one, mesh_two )
+#         subgraph_finder = tracking.ReducedBacktrackingSubgraphFinder(mesh_one, mesh_two)
+#         subgraph_finder.find_maximum_common_subgraph()
+#         largest_mappings = subgraph_finder.largest_mappings
+# 
+#         for mapping_index, large_mapping in enumerate(largest_mappings):
+# 
+#             tracked_ids = []
+#             
+#             for element_one in mesh_one.elements:
+#                 element_one.global_id = None
+# 
+#             for element_two in mesh_two.elements:
+#                 element_two.global_id = None
+# 
+#             for global_id, frame_one_id in enumerate(large_mapping):
+#                 mesh_one.get_element_with_frame_id(frame_one_id).global_id = global_id
+#                 mesh_two.get_element_with_frame_id(large_mapping[frame_one_id]).global_id = global_id
+#                 tracked_ids.append(global_id)
+# 
+#             mesh_one.index_global_ids()
+#             mesh_two.index_global_ids()
+# 
+#             mesh_one.plot('mesh_special_before_division_' + str(mapping_index) + '.pdf', color_by_global_id = True, 
+#                           total_number_of_global_ids = len( tracked_ids ) )
+#             mesh_two.plot('mesh_special_after_division_' + str(mapping_index) + '.pdf', color_by_global_id = True, 
+#                           total_number_of_global_ids = len( tracked_ids ) )
+ 
         mesh_one.plot(path.join(dirname(__file__),'output','tracked_ambiguous_mesh_before_division.pdf'), color_by_global_id = True, 
                       total_number_of_global_ids = len( tracked_ids ) )
         mesh_two.plot(path.join(dirname(__file__),'output','tracked_ambiguous_mesh_after_division.pdf'), color_by_global_id = True, 
@@ -676,8 +704,8 @@ class TestTrackDivision(unittest.TestCase):
         
 #         mesh_one.plot(path.join(dirname(__file__),'output','tracked_special_mesh_seven_before_division.pdf') )
 #         mesh_two.plot(path.join(dirname(__file__),'output','tracked_special_mesh_seven_after_division.pdf'))
-        tracked_ids = tracking.track( mesh_one, mesh_two )
-#         tracked_ids = tracking.find_maximum_common_subgraph( mesh_one, mesh_two )
+#         tracked_ids = tracking.track( mesh_one, mesh_two )
+        tracked_ids = tracking.find_maximum_common_subgraph( mesh_one, mesh_two )
 #         subgraph_finder = tracking.ReducedBacktrackingSubgraphFinder(mesh_one, mesh_two)
 #         subgraph_finder.find_maximum_common_subgraph()
 #         largest_mappings = subgraph_finder.largest_mappings
@@ -795,7 +823,7 @@ class TestTrackDivision(unittest.TestCase):
         plt.close('all')
 
     @attr(level = 'standard')
-    def xest_track_division(self):
+    def test_track_division(self):
         """generate a random mesh, copy it, perform a division event, and track it.
         """
         sys.setrecursionlimit(40000)
