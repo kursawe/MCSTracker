@@ -823,7 +823,7 @@ class TestTrackDivision(unittest.TestCase):
         plt.close('all')
 
     @attr(level = 'standard')
-    def test_track_division(self):
+    def xest_track_division(self):
         """generate a random mesh, copy it, perform a division event, and track it.
         """
         sys.setrecursionlimit(40000)
