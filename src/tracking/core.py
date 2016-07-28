@@ -1250,24 +1250,27 @@ class PostProcessor():
         
         print 'I am resolving this division event. Like, totally!'
         mappings_based_on_adjacency = self.altered_get_mappings_by_adjacency(connected_component_one)
-
+ 
 #        mappings_based_on_adjacency = self.get_mappings_by_adjacency(connected_component_one, connected_component_two)
-        
+         
         bordering_cells_mapping = self.find_bordering_cells_of_division( mappings_based_on_adjacency )
         if len(bordering_cells_mapping) == 2:
             print 'found the bordering cells'
         else:
             print 'nope, these are the bordering cells, currently'
             print bordering_cells_mapping
-        
+         
         potential_mother_cells = self.mesh_one.get_not_yet_mapped_shared_neighbour_ids( bordering_cells_mapping.keys() )
-
+ 
         if len(potential_mother_cells) == 2:
             print 'found the mother cells'
         else:
             print 'nope, these are the mother cells, currently'
             print potential_mother_cells
-        
+         
+        mother_cell = None
+        daughter_cells = None
+ 
         if len(potential_mother_cells) == 0:
             # In this case one of the daughter cells is triangular.
             # In this case it is not possible to say by adjacency only which cell is the mother cell,
@@ -1279,42 +1282,55 @@ class PostProcessor():
             potential_daughter_cells += self.mesh_two.get_not_yet_mapped_shared_neighbour_ids( bordering_cells_mapping.values() ) 
             mother_cell, daughter_cells = self.identify_division_event(new_potential_mother_cells, potential_daughter_cells,
                                                                   mappings_based_on_adjacency)
- 
+   
             connected_component_one.remove_node( mother_cell )
             connected_component_two.remove_nodes_from( daughter_cells )
- 
+   
+            print 'connected component now is'
+            print connected_component_one.nodes()
             self.altered_fill_in_by_adjacency( connected_component_one )
- 
+  
         elif len(potential_mother_cells) == 1:
             potential_mother_cell = potential_mother_cells[0]
             if potential_mother_cell in mappings_based_on_adjacency:
                 del mappings_based_on_adjacency[potential_mother_cell]
             for frame_id in mappings_based_on_adjacency:
                 self.preliminary_mappings[frame_id] = mappings_based_on_adjacency[frame_id]
+            print 'found exactly one mother cell'
         else:
             potential_daughter_cells = self.mesh_two.get_not_yet_mapped_shared_neighbour_ids( bordering_cells_mapping.values() )
             print 'potential daughter cells are'
             print potential_daughter_cells
 #             assert ( len(potential_daughter_cells) > 1)
             if len( potential_daughter_cells ) <= 1 :
+                print 'exception should be raised'
                 raise Exception("could not resolve division event")
             elif len(potential_daughter_cells) == 3:
                 mother_cell, daughter_cells = self.identify_division_event(potential_mother_cells, potential_daughter_cells,
-                                                                      mappings_based_on_adjacency)
- 
+                                                                           mappings_based_on_adjacency)
+#   
                 connected_component_one.remove_node( mother_cell )
                 connected_component_two.remove_nodes_from( daughter_cells )
- 
+#   
                 print 'mother cell is'
                 print mother_cell
                 print 'daughter cells are'
                 print daughter_cells
-                self.fill_in_by_adjacency( connected_component_one )
+                print 'pos 3 connected component now is'
+                print connected_component_one.nodes()
+                self.altered_fill_in_by_adjacency( connected_component_one )
             elif len(potential_daughter_cells) == 4 :
                 self.altered_fill_in_by_adjacency( connected_component_one )
+                print 'pos 2 connected component now is'
+                print connected_component_one.nodes()
             else:
+                print 'exception should be raised'
                 raise Exception("could not resolve division event")
-                
+                 
+#             if mother_cell is not None and daughter_cells is not None and daughter_cells != 12:
+#                 division_resolved = True
+#             else:
+#                 division_resolved = False
 
     def find_bordering_cells_of_division(self, preliminary_mapping):
         """Find the bordering cells of a division in a preliminary mapping. Looks for cells that gain an edge
