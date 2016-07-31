@@ -28,8 +28,8 @@ def make_t1_analysis():
     
     repetitions_number = 10
     success_ratio_matrix = np.zeros((15,2), dtype = 'int')
-    correctly_tracked_cells_matrix = np.zeros((15,repetitions_number + 1), dtype = 'int')
-    incorrectly_tracked_cells_matrix = np.zeros((15,repetitions_number + 1), dtype = 'int')
+    correctly_tracked_cells_matrix = np.zeros((15,repetitions_number + 1), dtype = 'float')
+    incorrectly_tracked_cells_matrix = np.zeros((15,repetitions_number + 1), dtype = 'float')
     for percentage_counter in range(15):
         success_ratio, correctly_tracked_cells, incorrectly_tracked_cells = get_success_ratio( percentage_counter, 
                                                                              repetitions_number)
