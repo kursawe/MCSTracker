@@ -37,18 +37,9 @@ def track(mesh_one, mesh_two):
     post_processor = PostProcessor(mesh_one, mesh_two, subgraph_finder.largest_mappings)
     post_processor.index_global_ids_from_largest_mappings()
     
-#     print 'number of elements in mesh one'
-#     print mesh_one.get_num_elements
-#     print 'tracked after cleaning'
-#     print len(post_processor.mapped_ids)
-
     post_processor.tidy_current_mapping()
-#     mapped_ids = post_processor.mapped_ids
     mapped_ids = post_processor.post_process_with_data()
     
-#     print 'tracked in total'
-#     print len(mapped_ids)
-#     
     return mapped_ids
 
 def track_and_write_sequence(input_path, output_path, start_number = 1, number_meshes = None):
@@ -86,7 +77,6 @@ def track_and_write_sequence(input_path, output_path, start_number = 1, number_m
         if counter > 0:
             previous_mesh = previous_sequence[counter -1]
             corresponding_mesh = next_sequence[counter]
-            print 'tracking step ' + str(counter)
             try:
                 track(previous_mesh, corresponding_mesh)
             except FirstIndexException:
@@ -547,23 +537,10 @@ class PostProcessor():
 
         network_one = self.mesh_one.generate_network_of_unidentified_elements()
     
-#         connected_components_in_network_one = list( nx.connected_component_subgraphs(network_one) )
-#         connected_components_in_network_two = list( nx.connected_component_subgraphs(network_two) )
-        
-#         for connected_component_one in connected_components_in_network_one:
-#             self.altered_fill_in_by_adjacency(connected_component_one)
-
-#         self.altered_fill_in_by_adjacency( network_one )
-        
         self.stable_fill_in_by_adjacency()
 
         self.resolve_division_events()
         self.index_global_ids()
-        
-#         assert( 56 in self.preliminary_mappings )
-#         assert( 53 in self.preliminary_mappings )
-#         assert( 57 in self.preliminary_mappings )
-        print self.preliminary_mappings
         
         return self.mapped_ids
    
@@ -581,42 +558,8 @@ class PostProcessor():
         connectivity self.maximal actual connectivity.
         """
         
-        print 'starting to fill in'
         self.make_connectivity_vector()
-        print 'made connectivity vector'
-        
-#         print 'starting the search'
-# #         for neighbour_number_difference in range(10):
-#         mapping_has_changed = True
-#         while mapping_has_changed:
-#             old_mapping = self.preliminary_mappings.copy()
-#             self.already_inspected_cells = np.zeros_like(self.connectivity_vector, dtype = 'bool')
-#             while self.check_mapping_is_extendible():
-#                 print 'mapping is extendible'
-#                 self.maximal_actual_connectivity = 0
-#                 self.current_best_match = None
-#                 self.actual_connectivity_tested = np.zeros_like( self.connectivity_vector, dtype = 'bool' )
-#                 while ( self.get_maximal_connectivity() > self.maximal_actual_connectivity and
-#                         self.get_maximal_connectivity() > 1 ):
-#                     next_frame_id = self.pick_next_cell()
-#                     mapping_candidate, actual_connectivity = self.alternative_find_safe_mapping_candidate_for_single_cell( next_frame_id )
-#                     element_index = self.mesh_one.frame_id_dictionary[next_frame_id]
-#                     self.actual_connectivity_tested[element_index] = True
-#                     if mapping_candidate is not None:
-#                         if actual_connectivity > self.maximal_actual_connectivity:
-#                             self.maximal_actual_connectivity = actual_connectivity
-#                             self.current_best_match = ( next_frame_id, mapping_candidate )
-#                     else:
-#                         self.already_inspected_cells[element_index] = True
-#                 if self.current_best_match is not None:
-#                     self.extend_preliminary_mapping( self.current_best_match[0], self.current_best_match[1] )
-#  
-#             if self.preliminary_mappings == old_mapping:
-#                 mapping_has_changed = False
-#             else:
-#                 mapping_has_changed = True
-#                 
-        ## possible new outline
+
         extension_found_with_relaxed_condition = True
         while extension_found_with_relaxed_condition:
             mapping_has_changed = True
@@ -624,7 +567,6 @@ class PostProcessor():
                 old_mapping = self.preliminary_mappings.copy()
                 self.already_inspected_cells = np.zeros_like(self.connectivity_vector, dtype = 'bool')
                 while self.check_mapping_is_extendible():
-                    print 'mapping is extendible'
                     self.maximal_actual_connectivity = 0
                     self.current_best_match = None
                     self.actual_connectivity_tested = np.zeros_like( self.connectivity_vector, dtype = 'bool' )
@@ -706,13 +648,6 @@ class PostProcessor():
                                                     not_yet_visited_cells ) )
         next_frame_id = self.mesh_one.elements[possible_indices[0][0]].id_in_frame
 
-        print 'next frame id is'
-        print next_frame_id
-        centroid_position = self.mesh_one.elements[possible_indices[0][0]].calculate_centroid()
-        new_centroid_position = np.array(centroid_position)
-        new_centroid_position[1] = 326 - centroid_position[1]
-        print new_centroid_position
-        print self.mesh_one.elements[possible_indices[0][0]].get_num_nodes()
         return next_frame_id
     
     def check_mapping_is_extendible(self):
@@ -770,14 +705,9 @@ class PostProcessor():
         centroid_position = self.mesh_two.get_element_with_frame_id(mapping_candidate).calculate_centroid()
         new_centroid_position = np.array(centroid_position)
         new_centroid_position[1] = 326 - centroid_position[1]
-        print 'mapping candidate position'
-        print new_centroid_position
-        print self.mesh_two.get_element_with_frame_id(mapping_candidate).get_num_nodes()
 
         assert(next_frame_id not in self.preliminary_mappings)
         self.preliminary_mappings[next_frame_id] = mapping_candidate
-        print 'list of frame ids in preliminary mappings'
-        print self.preliminary_mappings.keys()
         new_neighbour_ids = self.mesh_one.get_not_yet_mapped_shared_neighbour_ids( [next_frame_id],
                                                                                    self.preliminary_mappings.keys() )
 
@@ -819,11 +749,9 @@ class PostProcessor():
             number of preserved neighbours
         """
 
-        print 'entered new function'
         mapping_candidate = None
         element_one = self.mesh_one.get_element_with_frame_id(frame_id)
         if ( frame_id not in self.preliminary_mappings ):
-            print 'on my way, finding currently mapped neighbours'
             full_set_of_currently_mapped_neighbours = self.mesh_one.get_already_mapped_adjacent_element_ids( frame_id, 
                                                                                                              self.preliminary_mappings.keys() )
             # get mapping candidates by all shared neighbours of currently mapped neighbours
@@ -831,10 +759,6 @@ class PostProcessor():
                                                                             self.preliminary_mappings )
             mapping_candidates = self.mesh_two.get_not_yet_mapped_shared_neighbour_ids( images_of_already_mapped_neighbours,
                                                                                         self.preliminary_mappings.values() )
-            print 'found these mapping candidates'
-            print mapping_candidates
-            print 'currently mapped neighbours are'
-            print full_set_of_currently_mapped_neighbours
             full_neighbour_number = len( full_set_of_currently_mapped_neighbours )
             current_neighbour_number = len( full_set_of_currently_mapped_neighbours )
             if len(mapping_candidates) == 0:
@@ -849,8 +773,6 @@ class PostProcessor():
                         for image in image_set:
                             reduced_images_of_already_mapped_neighbours = [item for item in image_set
                                                                            if item != image ]
-#                             print reduced_images_of_already_mapped_neighbours
-#                             assert( len(reduced_images_of_already_mapped_neighbours) >= min_neighbour_number )
                             mapping_candidates.update( self.mesh_two.get_not_yet_mapped_shared_neighbour_ids( reduced_images_of_already_mapped_neighbours,
                                                                                                               self.preliminary_mappings.values() ))
                             new_reduced_image_sets.append(list(reduced_images_of_already_mapped_neighbours))
@@ -861,23 +783,14 @@ class PostProcessor():
             for candidate in mapping_candidates:
                 additional_neighbour_count = self.get_additional_neighbour_count( candidate, images_of_already_mapped_neighbours,
                                                                                   self.preliminary_mappings.values() )
-                print 'additional neighbour count is'
-                print additional_neighbour_count
                 element_two = self.mesh_two.get_element_with_frame_id(candidate)
-#                 if additional_neighbour_count < 3 and additional_neighbour_count < min_neighbour_number and polygon_numbers_add_up:
-#                 if additional_neighbour_count <= neighbour_number_difference:
-#                 if additional_neighbour_count < current_neighbour_number - 1:
                 if relaxed_condition:
                     if additional_neighbour_count < full_neighbour_number:
-                        print 'extending filtered mapping_candidates'
                         filtered_mapping_candidates.append( candidate )
                 else:
                     if additional_neighbour_count < full_neighbour_number - 1:
-                        print 'extending filtered mapping_candidates'
                         filtered_mapping_candidates.append( candidate )
 
-            print 'the filtered mapping candidates are'
-            print filtered_mapping_candidates
             if len(filtered_mapping_candidates) == 1:
                 mapping_candidate = filtered_mapping_candidates[0]
                     
@@ -933,7 +846,6 @@ class PostProcessor():
                             for image in image_set:
                                 reduced_images_of_already_mapped_neighbours = [item for item in image_set
                                                                                if item != image ]
-#                                 print reduced_images_of_already_mapped_neighbours
                                 assert( len( reduced_images_of_already_mapped_neighbours ) >= min_neighbour_number )
                                 mapping_candidates.update( self.mesh_two.get_not_yet_mapped_shared_neighbour_ids( reduced_images_of_already_mapped_neighbours,
                                                                                                                   preliminary_mapping.values() ))
@@ -1111,9 +1023,7 @@ class PostProcessor():
 #         import pdb; pdb.set_trace()
         for connected_component in connected_components_in_network_one:
             if len(connected_component) < 10:
-                print 'got here'
                 for frame_id in connected_component:
-                    print 'and here too!'
                     index = self.mesh_one.frame_id_dictionary[frame_id]
                     isolated_vector[index] = True
  
@@ -1238,8 +1148,6 @@ class PostProcessor():
         
         self.mesh_one.index_global_ids()
         self.mesh_two.index_global_ids()
-        print self.mapped_ids
-#         import pdb; pdb.set_trace()
         
         self.reindex_global_ids()
         
@@ -1286,26 +1194,14 @@ class PostProcessor():
             subgraph of the network corresponding to mesh_two
         """
         
-        print 'I am resolving this division event. Like, totally!'
         mappings_based_on_adjacency = self.altered_get_mappings_by_adjacency(connected_component_one)
  
 #        mappings_based_on_adjacency = self.get_mappings_by_adjacency(connected_component_one, connected_component_two)
          
         bordering_cells_mapping = self.find_bordering_cells_of_division( mappings_based_on_adjacency )
-        if len(bordering_cells_mapping) == 2:
-            print 'found the bordering cells'
-        else:
-            print 'nope, these are the bordering cells, currently'
-            print bordering_cells_mapping
          
         potential_mother_cells = self.mesh_one.get_not_yet_mapped_shared_neighbour_ids( bordering_cells_mapping.keys() )
  
-        if len(potential_mother_cells) == 2:
-            print 'found the mother cells'
-        else:
-            print 'nope, these are the mother cells, currently'
-            print potential_mother_cells
-         
         mother_cell = None
         daughter_cells = None
  
@@ -1324,8 +1220,6 @@ class PostProcessor():
             connected_component_one.remove_node( mother_cell )
             connected_component_two.remove_nodes_from( daughter_cells )
    
-            print 'connected component now is'
-            print connected_component_one.nodes()
             self.altered_fill_in_by_adjacency( connected_component_one )
   
         elif len(potential_mother_cells) == 1:
@@ -1334,14 +1228,10 @@ class PostProcessor():
                 del mappings_based_on_adjacency[potential_mother_cell]
             for frame_id in mappings_based_on_adjacency:
                 self.preliminary_mappings[frame_id] = mappings_based_on_adjacency[frame_id]
-            print 'found exactly one mother cell'
         else:
             potential_daughter_cells = self.mesh_two.get_not_yet_mapped_shared_neighbour_ids( bordering_cells_mapping.values() )
-            print 'potential daughter cells are'
-            print potential_daughter_cells
 #             assert ( len(potential_daughter_cells) > 1)
             if len( potential_daughter_cells ) <= 1 :
-                print 'exception should be raised'
                 raise Exception("could not resolve division event")
             elif len(potential_daughter_cells) == 3:
                 mother_cell, daughter_cells = self.identify_division_event(potential_mother_cells, potential_daughter_cells,
@@ -1350,19 +1240,10 @@ class PostProcessor():
                 connected_component_one.remove_node( mother_cell )
                 connected_component_two.remove_nodes_from( daughter_cells )
 #   
-                print 'mother cell is'
-                print mother_cell
-                print 'daughter cells are'
-                print daughter_cells
-                print 'pos 3 connected component now is'
-                print connected_component_one.nodes()
                 self.altered_fill_in_by_adjacency( connected_component_one )
             elif len(potential_daughter_cells) == 4 :
                 self.altered_fill_in_by_adjacency( connected_component_one )
-                print 'pos 2 connected component now is'
-                print connected_component_one.nodes()
             else:
-                print 'exception should be raised'
                 raise Exception("could not resolve division event")
                  
 #             if mother_cell is not None and daughter_cells is not None and daughter_cells != 12:
@@ -1477,8 +1358,6 @@ class PostProcessor():
         # first, identify any cells that are in network two but are not mapped
         network_two = self.mesh_two.generate_network_of_unidentified_elements(self.preliminary_mappings.values())
         connected_components_in_network_two = list( nx.connected_component_subgraphs(network_two) )
-        print 'regions with divisions are'
-        print connected_components_in_network_two
         for connected_component in connected_components_in_network_two:
             #check whether component is at mesh boundary:
             component_is_on_boundary = False
@@ -1487,7 +1366,6 @@ class PostProcessor():
                     component_is_on_boundary = True
                     break
             if not component_is_on_boundary:
-                print 'resolving division event not on boundary'
                 self.resolve_division_event_for_connected_component(connected_component)
 
 #         self.reindex_global_ids()
@@ -1561,14 +1439,10 @@ class PostProcessor():
                 old_mappings[frame_id] = self.preliminary_mappings[frame_id]
             elif frame_id in self.largest_mappings[0]:
                 old_mappings[frame_id] = self.largest_mappings[0][frame_id]
-            print 'remove cell at'
-            print self.mesh_one.get_element_with_frame_id(frame_id).calculate_centroid()
             global_id = self.mesh_one.get_element_with_frame_id(frame_id).global_id
             try:
-                print 'totally got here, too! 1'
                 self.mesh_two.get_element_with_global_id(global_id).global_id = None
                 self.mapped_ids.remove(global_id)
-                print 'totally got here, too!'
             except KeyError:
                 pass
             self.mesh_one.get_element_with_frame_id(frame_id).global_id = None
@@ -1579,8 +1453,6 @@ class PostProcessor():
             
         self.mesh_one.index_global_ids()
         self.mesh_two.index_global_ids()
-        print 'this is the prelim mapping'
-        print self.preliminary_mappings
         # make the connected components
         connected_component_one = self.network_one.subgraph( unmapped_elements_belonging_to_connected_component_in_network_one )
         connected_component_two = self.network_one.subgraph( unmapped_elements_belonging_to_connected_component_in_network_two )

@@ -1848,7 +1848,6 @@ class Element():
             shared_elements = set.intersection( set(node.get_adjacent_element_ids() ), set(next_node.get_adjacent_element_ids()) )
             shared_elements.remove( self.id_in_frame )
             if len( shared_elements ) > 0:
-#                 print 'found element along edge'
                 assert(len(shared_elements) == 1)
                 all_adjacent_element_ids.append(shared_elements.pop())
                
