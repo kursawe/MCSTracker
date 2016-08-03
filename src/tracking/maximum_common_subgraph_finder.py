@@ -1264,18 +1264,12 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             second entry is a frame id in the second mesh.
         """
         
-#         print 'start searching for initialisation'
 
         first_vertices = self.get_vertices_ordered_by_number_of_matches( tracking_state )
         
         first_match_not_yet_found = True
 
         for vertex in first_vertices:
-#             print 'consider vertex with frame id, position, and degree'
-#             vertex_id = self.network_one.nodes()[vertex]
-#             print vertex_id
-#             print self.network_one.node[vertex_id]['position']
-#             print self.network_one.node[vertex_id]['num_neighbours']
             possible_images = self.get_mappable_vertices(tracking_state, vertex)
             self.largest_mappings = []
             self.max_found_subgraph_size = 0
@@ -1326,38 +1320,13 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                             first_match_not_yet_found = False
                             first_mapping = [vertex, self.network_two_index_lookup[image_id]]
                             break
-#                         
-#         if first_match_not_yet_found:
-#             print 'Could not find first match and raising exception now'
-#             raise(FirstIndexException)
-#         else: 
-#             print 'found first match'
-#             print first_mapping
-#             print self.mesh_one.get_element_with_frame_id(self.network_one_node_iterator[vertex]).calculate_centroid()
-#             print self.mesh_one.get_element_with_frame_id(self.network_one_node_iterator[vertex]).get_num_nodes()
-#             print self.mesh_two.get_element_with_frame_id(image_id).calculate_centroid()
-#             print self.mesh_two.get_element_with_frame_id(image_id).get_num_nodes()
 
         if first_match_not_yet_found:
             first_tracking_state = tracking_state
         else:
             first_tracking_state = self.extend_tracking_state(tracking_state, 
                                                               first_mapping[0], first_mapping[1])
-            print 'found first match'
-            print first_mapping
-            print self.mesh_one.get_element_with_frame_id(self.network_one_node_iterator[vertex]).calculate_centroid()
-            print self.mesh_one.get_element_with_frame_id(self.network_one_node_iterator[vertex]).get_num_nodes()
-            print self.mesh_two.get_element_with_frame_id(image_id).calculate_centroid()
-            print self.mesh_two.get_element_with_frame_id(image_id).get_num_nodes()
 
-
-#         print 'needed so many tries for first mapping'
-#         print entry_counter
-#         print 'initial mapping is'
-#         print self.network_one.node[self.network_one.nodes()[first_mapping[0]]]['position']
-#         print self.network_two.node[self.network_two.nodes()[first_mapping[1]]]['position']
-
-#         print 'finished searching for initialisation'
         return ( not first_match_not_yet_found), first_tracking_state
 
     def linear_backtrack(self):
@@ -1379,22 +1348,13 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             if new_seed_could_be_found:
                 subgraph_is_still_changing = True
                 while subgraph_is_still_changing:
-#                     print 'blacklist loop'
                     old_id_map = tracking_state.id_map.copy()
                     tracking_state.not_blacklisted_vector[:] = True
                     subgraph_is_extendible = self.is_extendable(tracking_state, is_global = True)
                     while subgraph_is_extendible:
                         vertex = self.pick_next_vertex(tracking_state, is_global = True )
-#                         if self.network_one.nodes()[vertex] == 229:
-#                             import pdb; pdb.set_trace();
-#                             print 'trying to map frame id 240'
                             
-                        print 'mapping vertex at position'
-                        print self.network_one.node[self.network_one.nodes()[vertex]]['position']
                         possible_images = self.get_mappable_vertices(tracking_state, vertex)
-#                         if self.network_one.nodes()[vertex] == 0:
-#                             print 'possible images are'
-#                             print possible_images
 
                         self.max_found_subgraph_size = 0
                         self.largest_mappings = []
@@ -1412,42 +1372,6 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                         
                     subgraph_is_still_changing = not old_id_map == tracking_state.id_map
         
-#         while subgraph_is_extendible:
-#             vertex = self.pick_next_vertex(tracking_state, is_global = True )
-# #             print 'mapping vertex at position'
-# #             print self.network_one.node[self.network_one.nodes()[vertex]]['position']
-#             possible_images = self.get_mappable_vertices(tracking_state, vertex)
-# 
-#             self.max_found_subgraph_size = 0
-#             self.largest_mappings = []
-#             
-#             for image in possible_images:
-#                 new_tracking_state,_ = self.create_localised_tracking_state( tracking_state, vertex, image )
-#                 self.backtrack( new_tracking_state )
-#                 
-#             reduced_localised_tracking_state,_ = self.create_localised_tracking_state(tracking_state, vertex)
-#             self.backtrack( reduced_localised_tracking_state )
-#             
-#             tracking_state = self.extend_tracking_state_and_largest_mapping_if_feasible( tracking_state, vertex )
-#             
-#             subgraph_is_extendible = self.is_extendable(tracking_state, is_global = True)
-#        
-#        for vertex in blacklisted_vertices:
-#
-#            possible_images = self.get_mappable_vertices(tracking_state, vertex)
-#
-#            self.max_found_subgraph_size = 0
-#            self.largest_mappings = []
-#
-#            for image in possible_images:
-#                new_tracking_state,_ = self.create_localised_tracking_state( tracking_state, vertex, image )
-#                self.backtrack( new_tracking_state )
-#                
-#            reduced_localised_tracking_state,_ = self.create_localised_tracking_state(tracking_state, vertex)
-#            self.backtrack( reduced_localised_tracking_state )
-#            
-#            tracking_state = self.extend_tracking_state_and_largest_mapping_if_feasible( tracking_state, vertex )
-
         self.largest_mappings = [tracking_state.id_map]
             
     def extend_tracking_state_and_largest_mapping_if_feasible(self, tracking_state, vertex):
@@ -1480,36 +1404,11 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
 #             vertex_preserves_rotational_symmetry = True
         else:
             vertex_preserves_rotational_symmetry = False
-#         if self.network_one.nodes()[vertex] == 0:
-#             print 'vertex 0 has position'
-#             print self.network_one.node[vertex_id]['position']
-#             print 'the current id map has this size'
-#             print len(tracking_state.id_map)
-#             print 'vertices that in the largest mappings'
-#             for largest_mapping in self.largest_mappings:
-#                 print 'inspecting a largest mapping'
-#                 for frame_id in largest_mapping:
-#                     if frame_id not in tracking_state.id_map:
-#                         print 'vertex at this position got mapped additionally'
-#                         print self.network_one.node[frame_id]['position']
-#                         print 'onto:'
-#                         print self.network_two.node[largest_mapping[frame_id]]['position']
                         
         if ( vertex_is_mapped_equally_in_all_largest_mappings and vertex_preserves_rotational_symmetry ):
-#             if self.network_one.nodes()[vertex] == 0:
-#                 print 'vertex 0 is mapped equally in all largest mappings'
             new_tracking_state = self.extend_tracking_state(tracking_state, vertex, self.network_two_index_lookup[image] )
             new_tracking_state.not_blacklisted_vector[vertex] = True
-            print 'extend tracking state with vertices'
-            print 'origin:'
-            print self.network_one.node[vertex_id]['position']
-            print self.network_one.node[vertex_id]['num_neighbours']
-            print 'image'
-            print self.network_two.node[image]['position']
-            print self.network_two.node[image]['num_neighbours']
         else:
-#             if self.network_one.nodes()[vertex] == 0:
-#                 print 'vertex 0 is not mapped equally in all largest mappings'
             new_tracking_state = tracking_state
             tracking_state.not_blacklisted_vector[vertex] = False
         
@@ -1532,36 +1431,18 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             mapping hast its neighbours matched in the correct rotational order
         """
         vertex_id = self.network_one_node_iterator[vertex]
-#         if vertex_id == 229:
-#             import pdb; pdb.set_trace()
         ## get neighbour of vertex with maximal tracked neighbours in first largest mapping
         for largest_mapping in self.largest_mappings:
             # get mapped neighbours
             already_mapped_elements = largest_mapping.keys()
             mapped_neighbours = self.mesh_one.get_already_mapped_adjacent_element_ids(vertex_id, already_mapped_elements)
             mapped_neighbours.append(vertex_id)
-            print 'mapped neighbours are'
-            print mapped_neighbours
             for neighbour_id in mapped_neighbours:
                 is_in_order = self.check_neighbours_are_mapped_in_order( neighbour_id, largest_mapping )
                 if not is_in_order:
-#                     import pdb; pdb.set_trace();
                     return False
         
         return True
-
-            # find neighbour with most neighbours
-#             maximal_neighbour_number = 0
-#             maximal_neighbour_candidate = -1
-#             for neighbour_id in mapped_neighbours:
-#                 this_neighbour_neighbour_count = len(self.mesh_one.get_already_mapped_adjacent_element_ids( neighobur_id, 
-#                                                                                                             already_mapped_elements ))
-#                 if this_neighbour_neighbour_count > maximal_neighbour_number:
-#                     maximal_neighbour_number = this_neighbour_neighbour_count
-#                     maximal_neighbour_candidate = neighobur_id
-                    
-            # check rotational symmetry:
-        ## check rotational symmetry of mapped neighbours of neighbour
 
     def check_neighbours_are_mapped_in_order(self, frame_id, id_map):
         """True if all neighbours of frame_id are mapped in the correct order
@@ -1598,12 +1479,6 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         # The next bit is from stackoverflow: a quick comparision whether two integer lists are in same circular order 
         # http://stackoverflow.com/questions/26924836/how-to-check-whether-two-lists-are-circularly-identical-in-python
 
-#         str1 = ' '.join(map(str, second_already_mapped_neighbours))
-#         str2 = ' '.join(map(str, mapped_neighbour_element_ids))
-#         is_ordered = str1 in str2 + ' ' + str2
-
-        if frame_id == 240:
-            print 'booja!'
         if len(mapped_neighbour_element_ids) != 2:
             str1 = ' '.join(map(str, second_already_mapped_neighbours))
             str2 = ' '.join(map(str, mapped_neighbour_element_ids))
@@ -1614,15 +1489,8 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                 order_one_images = [ id_map[this_id] for this_id in order_one ] 
                 order_two = self.get_two_ordered_neighbour_ids_of_element( self.mesh_two, image_frame_id, already_mapped_elements_images )
                 is_ordered = ( order_one_images == order_two )
-                if is_ordered:
-                    if frame_id == 240:
-                        print 'booja!'
-                    print 'two elements can, indeed, be ordered!'
             else:
                 is_ordered = True
-
-#         if not is_ordered:
-#             import pdb; pdb.set_trace()
 
         return is_ordered   
 
@@ -1676,20 +1544,6 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             ordered_frame_ids = [first_frame_id, second_frame_id]
         
         return ordered_frame_ids
-#         starting_point = -1
-#         for neighbour_counter, adjacent_frame_id in enumerate( all_adjacent_elements ):
-#             if adjacent_frame_id in already_mapped_frame_ids:
-#                 mapped_ids.append( adjacent_frame_id )
-#                 if starting_point == -1:
-#                     starting_point = neighbour_counter
-#  
-#         if starting_point == 0:
-#             new_mapped_ids = [ mapped_ids[-1] ] + mapped_ids[1:]
-#         else:
-#             new_mapped_ids = mapped_ids
-#             
-#         assert( len(new_mapped_ids) == 2 )
-#         return new_mapped_ids
 
     def extend_tracking_state(self, tracking_state, vertex_one, vertex_two):
         """Create an new tracking state, where tracking state is extended by the mapping from current_vertex 
@@ -1790,13 +1644,6 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
 
         vertex_id = self.network_one.nodes()[vertex]
         vertex_is_mapped_equally_in_all_largest_mappings = True
-#         if self.network_one.nodes()[vertex] == 0:
-#             print 'vertex 0 is in first largest mapping'
-#             print vertex_id in self.largest_mappings[0]
-#             print 'the largest mapping has this size'
-#             print len(self.largest_mappings[0])
-#             print 'and there are so many largest mappings:'
-#             print len(self.largest_mappings)
         image = None
         if vertex_id in self.largest_mappings[0]:
             image = self.largest_mappings[0][vertex_id]
@@ -1804,30 +1651,15 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         else:
             vertex_is_mapped_equally_in_all_largest_mappings = False
             vertex_is_in_first_mapping = False
-#             print 'found vertex not in first mapping'
-#             print self.network_one.node[vertex_id]['position']
-#             print 'vertex has id'
-#             print vertex_id
-#             print 'number of largest mappings'
-#             print len(self.largest_mappings)
-#             inverse_dictionary_one = { v: k for k, v in self.largest_mappings[0].items() }
-#             inverse_image = inverse_dictionary_one[46]
-#             print 'the vertex that got mapped onto this one in this image is'
-#             print inverse_image
-#             print self.network_two.node[inverse_image]['position']
 
         if vertex_is_in_first_mapping:
             for large_mapping in self.largest_mappings:
                 if vertex_id in large_mapping:
                     if large_mapping[vertex_id] != image:
                         vertex_is_mapped_equally_in_all_largest_mappings = False
-#                         print 'found vertex with different images in the mappings'
-#                         print self.network_one.node[vertex_id]['position']
                         break
                 else:
                     vertex_is_mapped_equally_in_all_largest_mappings = False
-#                     print 'found vertex that is not in all mappings'
-#                     print self.network_one.node[vertex_id]['position']
                     break
         
         return vertex_is_mapped_equally_in_all_largest_mappings, image
