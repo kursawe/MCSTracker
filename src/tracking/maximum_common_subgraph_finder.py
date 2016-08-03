@@ -239,7 +239,7 @@ class KrissinelMaximumCommonSubgraphFinder:
                 self.backtrack(new_tracking_state)
         
             # take the current vertex out of the possible extensions for the current tracking state
-            if tracking_state.inverse_sparse_matrix_lookup == None:
+            if tracking_state.inverse_sparse_matrix_lookup is None:
                 tracking_state.vertex_matching_matrix[current_vertex,:] = 0
                 tracking_state.counts_of_mappable_vertices[current_vertex] = 0
             else:
@@ -296,7 +296,7 @@ class KrissinelMaximumCommonSubgraphFinder:
         new_tracking_state.inverse_sparse_matrix_lookup = tracking_state.inverse_sparse_matrix_lookup
         
         for reduced_vertex_index in list_of_still_mappable_vertices_in_old_state:
-            if tracking_state.inverse_sparse_matrix_lookup == None:
+            if tracking_state.inverse_sparse_matrix_lookup is None:
                 vertex_index = reduced_vertex_index
             else:
                 vertex_index = tracking_state.sparse_matrix_lookup[reduced_vertex_index]
@@ -418,7 +418,7 @@ class KrissinelMaximumCommonSubgraphFinder:
             in network_one
         """
         
-        if tracking_state.inverse_sparse_matrix_lookup == None:
+        if tracking_state.inverse_sparse_matrix_lookup is None:
             mappable_vertices = tracking_state.vertex_matching_matrix[vertex_index,0:tracking_state.counts_of_mappable_vertices[vertex_index]]
         else:
             reduced_index = tracking_state.inverse_sparse_matrix_lookup[vertex_index]
@@ -549,7 +549,7 @@ class ConnectedMaximumCommonSubgraphFinder(KrissinelMaximumCommonSubgraphFinder)
             
         Pick a node from network_one that hasn't been mapped yet. Pick one that has the minimum number of possible matches
         """
-        if tracking_state.adjacent_vertices == None:
+        if tracking_state.adjacent_vertices is None:
             next_vertex_index = KrissinelMaximumCommonSubgraphFinder.pick_next_vertex(self, tracking_state)
         else:
             if not is_global:
@@ -572,7 +572,7 @@ class ConnectedMaximumCommonSubgraphFinder(KrissinelMaximumCommonSubgraphFinder)
                                                                          maximum_number_of_connections )
             possible_next_vertex_indices = np.nonzero( possible_vertices_with_maximal_connection )
             
-            if tracking_state.inverse_sparse_matrix_lookup == None:
+            if tracking_state.inverse_sparse_matrix_lookup is None:
                 next_vertex_index = possible_next_vertex_indices[0][0]
             else:
                 reduced_next_vertex_index = possible_next_vertex_indices[0][0]
@@ -647,7 +647,7 @@ class ConnectedMaximumCommonSubgraphFinder(KrissinelMaximumCommonSubgraphFinder)
                                                                           for vertex in vertices_that_are_adjacent_to_vertex_one])
         
         new_tracking_state.connections_to_current_subgraph = np.copy(tracking_state.connections_to_current_subgraph)
-        if tracking_state.inverse_sparse_matrix_lookup == None:
+        if tracking_state.inverse_sparse_matrix_lookup is None:
             new_tracking_state.connections_to_current_subgraph[indices_of_vertices_that_are_adjacent_to_vertex_one] += 1
         else:
             for vertex_index in indices_of_vertices_that_are_adjacent_to_vertex_one:
@@ -657,7 +657,7 @@ class ConnectedMaximumCommonSubgraphFinder(KrissinelMaximumCommonSubgraphFinder)
 
         new_tracking_state.not_blacklisted_vector = tracking_state.not_blacklisted_vector
 
-        if (tracking_state.adjacent_vertices != None):
+        if (tracking_state.adjacent_vertices is not None):
             new_tracking_state.adjacent_vertices = np.unique( np.hstack( ( tracking_state.adjacent_vertices,
                                                                            indices_of_vertices_that_are_adjacent_to_vertex_one ) ) )
         else:
@@ -1177,7 +1177,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         indices_of_vertices_that_are_adjacent_to_vertex_one = np.array( [ self.network_one_index_lookup[vertex] 
                                                                           for vertex in vertices_that_are_adjacent_to_vertex_one])
        
-        if vertex_two != None:
+        if vertex_two is not None:
             # here is the copy-pasted code for making extended trackingstates
             # here is the copy-pasted code for making extended Krissinel tracking states
 
@@ -1212,7 +1212,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
 
             localised_tracking_state.not_blacklisted_vector = tracking_state.not_blacklisted_vector
 
-            if (tracking_state.adjacent_vertices != None):
+            if (tracking_state.adjacent_vertices is not None):
                 localised_tracking_state.adjacent_vertices = np.unique( np.hstack( ( tracking_state.adjacent_vertices,
                                                                                indices_of_vertices_that_are_adjacent_to_vertex_one ) ) )
             else:
@@ -1614,7 +1614,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         
         new_tracking_state.connections_to_current_subgraph[indices_of_vertices_that_are_adjacent_to_vertex_one] += 1
 
-        if (tracking_state.adjacent_vertices != None):
+        if (tracking_state.adjacent_vertices is not None):
             new_tracking_state.adjacent_vertices = np.unique( np.hstack( ( tracking_state.adjacent_vertices,
                                                                            indices_of_vertices_that_are_adjacent_to_vertex_one ) ) )
         else:

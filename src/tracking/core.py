@@ -107,7 +107,7 @@ def track_and_write_sequence(input_path, output_path, start_number = 1, number_m
             for element_counter, element in enumerate(this_mesh.elements):
                 corresponding_element = corresponding_mesh.get_element_with_frame_id(element.id_in_frame)
                 this_global_id = corresponding_element.global_id
-                if this_global_id == None:
+                if this_global_id is None:
                     new_global_id = max(global_ids) + 1
                     global_ids.append( max(global_ids) + 1 )
                     element.global_id = new_global_id
@@ -515,7 +515,7 @@ class PostProcessor():
         list_of_images = []
         for frame_id in list_of_arguments:
             global_id = self.mesh_one.get_element_with_frame_id(frame_id).global_id
-            if global_id != None:
+            if global_id is not None:
                 list_of_images.append(self.mesh_two.get_element_with_global_id(global_id).id_in_frame )
             else:
                 list_of_images.append(preliminary_mapping[frame_id])
@@ -675,7 +675,7 @@ class PostProcessor():
         """
         connectivity_vector = np.zeros(self.mesh_one.get_num_elements(), dtype = 'int')
         for counter, element in enumerate(self.mesh_one.elements):
-            if element.global_id == None:
+            if element.global_id is None:
                 full_set_of_currently_mapped_neighbours = self.mesh_one.get_already_mapped_adjacent_element_ids( element.id_in_frame ) 
                 connectivity_vector[counter] = len(full_set_of_currently_mapped_neighbours)
             else:
@@ -976,7 +976,7 @@ class PostProcessor():
                 if node not in preliminary_mapping and node not in self.preliminary_mappings:
                     mapping_candidate = self.find_safe_mapping_candidate_for_single_cell( node, preliminary_mapping,
                                                                                           minimal_number_of_neighbours )       
-                    if mapping_candidate != None and mapping_candidate not in preliminary_mapping.values():
+                    if mapping_candidate is not None and mapping_candidate not in preliminary_mapping.values():
                         preliminary_mapping[node] = mapping_candidate
                     else:
                         # this element is still not uniquely identifiable. If all its neighbours have been mapped, then
@@ -999,7 +999,7 @@ class PostProcessor():
         """
         isolated_vector = np.zeros( len(self.mesh_one.elements), dtype = 'bool' )
         for element_counter, element in enumerate( self.mesh_one.elements ):
-            if element.global_id != None:
+            if element.global_id is not None:
 #                 if element.global_id == 166:
 #                     import pdb; pdb.set_trace()
                 if self.is_isolated( element ):
@@ -1103,7 +1103,7 @@ class PostProcessor():
         
         already_mapped_adjacent_elements = []
         for element_id in adjacent_elements:
-            if self.mesh_one.get_element_with_frame_id(element_id).global_id != None:
+            if self.mesh_one.get_element_with_frame_id(element_id).global_id is not None:
                 already_mapped_adjacent_elements.append(element_id)
         
         if len( already_mapped_adjacent_elements ) == 1 or len(already_mapped_adjacent_elements) == 0:
@@ -1317,7 +1317,7 @@ class PostProcessor():
         else:
             raise Exception("could not resolve division event")
         
-        if definite_daughter_cell == None or definite_daughter_cell == 0 :
+        if definite_daughter_cell is None or definite_daughter_cell == 0 :
             raise Exception("could not resolve division event")
 
         if len(potential_daughter_cells) <= 1 :
@@ -1580,7 +1580,7 @@ def evaluate_tracking(first_mesh, second_mesh, ground_truth):
         # and that the mapping coincides with the ground truth for all tracked ids
         first_frame_id = first_element.id_in_frame
         if first_frame_id in ground_truth:
-            if first_element.global_id == None:
+            if first_element.global_id is None:
                 missing_cells.append(first_frame_id)
             else:
                 this_global_id = first_element.global_id

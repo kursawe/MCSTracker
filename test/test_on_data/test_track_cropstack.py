@@ -39,7 +39,7 @@ class TestTrackCropstack(unittest.TestCase):
                                                      'output','crostack_track'),
                                            start_number = 1, number_meshes = 21 ) 
         
-    def test_visualize_sequence(self):
+    def xest_visualize_sequence(self):
         tracking.plot_tracked_sequence( path.join(dirname(__file__),
                                                   'output','crostack_track'),
                                         path.join(dirname(__file__),
@@ -52,7 +52,7 @@ class TestTrackCropstack(unittest.TestCase):
     def xest_post_process_sequence(self):
 
         data_collector = tracking.analyse_tracked_sequence(path.join(dirname(__file__),
-                                                                     'output','first_few_frames'))
+                                                                     'output','crostack_track'))
                                                            
         for counter, this_mesh in enumerate(data_collector.mesh_sequence):
             print 'mesh number'
@@ -103,4 +103,12 @@ class TestTrackCropstack(unittest.TestCase):
         print data_collector.number_of_tracked_cells
         print 'global ids of shared tracked cells'
         print data_collector.global_ids_of_tracked_cells
+        
+        data_collector.set_output_directory(path.join(dirname(__file__), 'output','analysed_cropstack'))
+        data_collector.write_area_statistics()
+        data_collector.write_cell_area_statistics()
+        data_collector.write_rearrangement_statistics()
+        data_collector.write_tracked_cell_statistics()
+        data_collector.write_cell_area_statistics()
+        data_collector.write_dying_cells()
         
