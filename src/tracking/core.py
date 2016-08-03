@@ -167,6 +167,30 @@ def analyse_tracked_sequence(input_path):
     return DataCollector(mesh_sequence)
 
 def plot_tracked_sequence( sequence_path, image_path, segmented_path, out_path ):
+    """Plot a tracked sequence of meshes.
+    
+    This creates three types of plots for the entire sequence.  
+    The first type of plot overlays the experimental data, the segmentation, and the 
+    tracking outcome. Each tracked cell is given an individual colour and an id that is 
+    included in the overlay.
+    
+    The second type of plots illustrates the maximum common subgraphs.
+    
+    The third type of plots shows the tracked tesselation of polygons
+    
+    Parameters
+    ----------
+    
+    sequence_path : string
+        path to the tracked mesh sequence (contains a series of .mesh files) 
+        
+    image_path : string
+        path to the sequence of original images
+        
+    segmented_path : string
+        path where the overlay should be saved. Will be created if required.
+    """
+
     mesh_sequence = mesh.load_sequence( sequence_path )
     
     list_of_image_files = glob.glob( os.path.join( image_path , '*.tif') )
@@ -189,7 +213,7 @@ def plot_tracked_sequence( sequence_path, image_path, segmented_path, out_path )
     if not os.path.isdir(overlay_path):
         os.mkdir( overlay_path )
 
-    polygon_path = os.path.join(out_path, 'pologyons')
+    polygon_path = os.path.join(out_path, 'polygons')
     if not os.path.isdir(polygon_path):
         os.mkdir( polygon_path )
         
@@ -210,7 +234,7 @@ def plot_tracked_sequence( sequence_path, image_path, segmented_path, out_path )
                             total_number_of_global_ids = max_global_id)
         
         mcs_file_path = os.path.join( mcs_path, out_file_name )
-        mesh_instance.plot( polygon_file_name, color_by_global_id = True,
+        mesh_instance.plot( mcs_file_name, color_by_global_id = True,
                             total_number_of_global_ids = max_global_id, reduced_mcs_only = True )
 
 class DataCollector():
@@ -232,7 +256,75 @@ class DataCollector():
         self.generate_centroid_statistics()
         self.generate_edge_difference_statistics()
         self.generate_tracking_statistics()
+        self.output_directory = None
     
+    def set_output_directory(self, output_dir):
+        """Sets the output dir.
+        
+        Parameters
+        ----------
+        
+        output_dir : string
+        """
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+        
+        self.output_directory = output_dir
+
+    def write_area_statistics(self):
+        """Write the area statistics"""
+        area_statistics = []
+        for this_mesh in self.mesh_sequence:
+            this_area = this_mesh.calculate_total_area()
+            this_number_cells = this_mesh.get_num_elements()
+            this_average = this_area/this_number_cells
+            area_statistics.append( this_average )
+        
+        area_statistics_np = np.array(area_statistics)
+        np.savetxt(os.path.join(self.output_directory, 'area_statistics.csv' ), area_statistics_np)
+
+    def write_rearrangement_statistics(self):
+        """Write the area statistics"""
+        number_of_rearrangements = []
+        for step in self.steps:
+            number_of_rearrangements.append( step.number_of_cells_gaining_edges + step.number_of_cells_loosing_edges )
+        rearrangement_statistics_np = np.array(number_of_rearrangements)
+        np.savetxt(os.path.join(self.output_directory, 'rearrangement_statistics.csv' ), rearrangement_statistics_np)
+    
+    def write_tracked_cell_statistics(self):
+        """Write tracked_cells_statistics"""
+        number_of_tracked_cells = []
+        number_of_total_cells = []
+        these_data = np.zeros( (len(self.steps), 2 ), dtype = 'int')
+        for step_counter, step in enumerate( self.steps ):
+            these_data[step_counter, 0] = step.mesh_one.get_num_elements()
+            these_data[step_counter, 1] = step.number_of_tracked_cells
+        np.savetxt(os.path.join(self.output_directory, 'tracking_statistics.csv' ), these_data)
+ 
+    def write_dying_cells(self):
+        """make a list of all global ids that are removed"""
+        np.savetxt( os.path.join(self.output_directory, 'dying_cells.csv'), 
+                    self.global_ids_of_dying_cells )
+        
+    def write_cell_area_statistics(self):
+        """write the area evolution for each global id"""
+        maximal_global_id = 0
+        for this_mesh in self.mesh_sequence:
+            this_max_global_id = this_mesh.get_max_global_id()
+            if this_max_global_id > maximal_global_id:
+                maximal_global_id = this_max_global_id
+            
+        cell_area_data = np.zeros( (maximal_global_id + 1, len(self.mesh_sequence)) )
+        for mesh_counter, this_mesh in enumerate(self.mesh_sequence):
+            for global_id in range(maximal_global_id + 1):
+                try:
+                    this_element = this_mesh.get_element_with_global_id( global_id )
+                    this_area = this_element.calculate_area()
+                except KeyError:
+                    this_area = np.nan
+                cell_area_data[global_id, mesh_counter] = this_area
+        np.savetxt(os.path.join(self.output_directory, 'cell_area_statistics.csv' ), cell_area_data)
+                
     def collect_all_steps(self):
         """Generate StepDataCollectors for each time step"""
         self.steps = []
@@ -442,6 +534,8 @@ class PostProcessor():
     
     def add_pairing(self, element_one_id, element_two_id):
         """Add a pairing to the preliminary mapping.         
+        
+        This method is deprecated.
 
         Parameters
         ----------
@@ -457,6 +551,8 @@ class PostProcessor():
     def post_process(self):
         """Post process the maximum common subgraph, 'fill in the gaps',
         and return the full list of global ids
+        
+        This method is deprecated.
         
         Identifies T1 Swaps and maps the involved cells
         
@@ -534,6 +630,18 @@ class PostProcessor():
         return self.mapped_ids
    
     def stable_fill_in_by_adjacency(self):
+        """Fill in untracked elements. 
+        
+        This method sets up a registry of untracked cells and how many tracked neighbours they have.
+        This registry is saved under self.connectivity_vector, which safes for each element
+        in the first mesh the number of tracked neighbours in the first mesh.
+        Based on this registry it will attempt to map cells in a way that maximises the number of preserved
+        neighbours upon tracking.
+        This is achieved by combining self.connectivity_vector with a boolean vector
+        self.actual_connectivy_tested that saves whether the number of preserved neighbours under the best
+        possible mapping has been found. The method also uses a current_best_match that has the
+        connectivity self.maximal actual connectivity.
+        """
         
         print 'starting to fill in'
         self.make_connectivity_vector()
@@ -626,11 +734,33 @@ class PostProcessor():
                 extension_found_with_relaxed_condition = False
  
     def get_maximal_connectivity(self):
+        """Helper method for stable_fill_in_by_adjacency. It it returns
+        the maximal connectivity to the mcs among cells that have not yet been inspected
+        for actual connectivity, i.e. the possible number of preserved neighbours under the
+        best-possible mapping.
+        
+        Returns
+        -------
+        
+        maximal_connectivity : int
+            maximal connectivity among not yet inspected cells.
+        """
         not_yet_visited_cells = np.logical_and( self.already_inspected_cells == False, self.actual_connectivity_tested == False )
         maximal_connectivity = np.max( self.connectivity_vector[not_yet_visited_cells])
         return maximal_connectivity
 
     def pick_next_cell(self):
+        """Pick a next cell for inspection for actual connectivity
+        
+        Returns a cell that has not yet been inspected and for which the actual connectivity has not yet
+        been tested.
+        
+        Returns
+        -------
+        
+        next_cell : int 
+            frame id of the cell that is to be inspected next.
+        """
         maximal_connectivity = self.get_maximal_connectivity()
         assert(maximal_connectivity > 1)
         not_yet_visited_cells = np.logical_and( self.already_inspected_cells == False, self.actual_connectivity_tested == False )
@@ -648,13 +778,28 @@ class PostProcessor():
         return next_frame_id
     
     def check_mapping_is_extendible(self):
+        """Returns whether the current mapping is extendible.
+        
+        Returns True if there are any cells that have not yet been inspected and for which
+        the connectivity is larger than one
+        
+        Returns
+        -------
+        
+        mapping_is_extendible : bool
+            True if the mapping is extendible.
+        """
         mapping_is_extendible = np.sum(np.logical_and( self.already_inspected_cells == False, 
                                                        self.connectivity_vector > 1 )) > 0
 
         return mapping_is_extendible
     
     def make_connectivity_vector(self):
-        
+        """Make a connectivity vector. The connectivity vector is used
+        throughout the method stable_fill_in_by_adjacency. For each cell in the first
+        mesh it saves an integer number denoting how many tracked neighbours that cell has. 
+        The connectivity vector is stored as a member variable of the post processor.
+        """
         connectivity_vector = np.zeros(self.mesh_one.get_num_elements(), dtype = 'int')
         for counter, element in enumerate(self.mesh_one.elements):
             if element.global_id == None:
@@ -666,6 +811,23 @@ class PostProcessor():
         self.connectivity_vector = connectivity_vector
 
     def extend_preliminary_mapping(self, next_frame_id, mapping_candidate):
+        """Extend the preliminary mapping.
+        
+        Once stable_fill_in_by_adjacency has found a new mapping this method is called to
+        add the mapping to the preliminary mapping.
+        
+        It will update the connectivity vector for any cells around the cell corresponding
+        to next_frame_id and reset their already_inspected vector.
+        
+        Parameters
+        ----------
+        
+        next_frame_id : int 
+            frame id of cell in first mesh that is to be mapped 
+        
+        mapping_candidate : int
+            frame id of cell in second mesh that is to be mapped
+        """
 
         centroid_position = self.mesh_two.get_element_with_frame_id(mapping_candidate).calculate_centroid()
         new_centroid_position = np.array(centroid_position)
@@ -689,6 +851,36 @@ class PostProcessor():
             self.already_inspected_cells[element_index] = False
 
     def alternative_find_safe_mapping_candidate_for_single_cell(self, frame_id, relaxed_condition = False ):
+        """This method finds a possible mapping candidate for a single cell.
+        It is a helper method of stable_fill_in_by_adjacency.
+        
+        It returns a mapping candidate if the number of gained tracked neighbours is less than
+        the number of preserved neighbours - 1. If relaxed_condition is True,
+        it returns a mapping candidate if the number of gained tracked neighbours is
+        less than the number of preserved tracked neighbours.
+        
+        Parameters
+        ----------
+        
+        frame_id : int
+            integer of the cell for which we try to find a mapping candidate
+            
+        relaxed_condition : bool
+            If True, the number of gained tracked neighbours must be less than
+            the number of preserved tracked neighbours. If False, the number
+            of gained tracked neighbours must be less than the number
+            of preserved tracked neighbours - 1.
+            
+        Returns
+        -------
+        
+        mapping_candidate : int
+            frame id in second mesh that indicates the mapping candidate
+            
+        current_neighbour_number : int
+            number of preserved neighbours
+        """
+
         print 'entered new function'
         mapping_candidate = None
         element_one = self.mesh_one.get_element_with_frame_id(frame_id)
@@ -755,6 +947,8 @@ class PostProcessor():
     
     def find_safe_mapping_candidate_for_single_cell(self, frame_id, preliminary_mapping, min_neighbour_number = 3 ):
         """Finds a mapping candidate for the cell with frame_id
+        
+        Helper to altered_fill_in_by_adjacency which only gets calles upon division resolution.
         
         Parameters
         ----------
@@ -858,7 +1052,8 @@ class PostProcessor():
                
         Takes a network of unmapped cells in the first mesh, 
         and fills in the cell-to-cell mapping between them based on adjacency
-        with already mapped cells.
+        with already mapped cells. This method has been replaced by stable_fill_in_by_adjacency
+        and is now only used in the division resolution step.
         
         Parameters
         ----------
@@ -876,6 +1071,8 @@ class PostProcessor():
         """Gets a preliminary mapping based on the adjacency to already mapped nodes.
         
         Helper method for fill_in_by_adjacency and identify_division_event.
+        
+        Same as altered_fill_in_by_adjacency this method is now only used in the division resolution step
 
         Parameters
         ----------
@@ -902,6 +1099,8 @@ class PostProcessor():
     def extend_current_preliminary_mapping(self, network_one, preliminary_mapping, minimal_number_of_neighbours=3):
         """This fills in any unmapped nodes in network one into preliminary mapping, ensuring
            that any new mapping has at least minimal_number_of_neighbours tracked neighbours.
+           
+        As submethod to altered_fill_in_by_adjacency this method only gets called upon division resolution.
            
         Parameters
         ----------
@@ -945,7 +1144,8 @@ class PostProcessor():
             
     def tidy_current_mapping(self):
         """This function resets all global id's that only have one connection to the current maximum common subgraph, or
-           two isolated connections.
+           two isolated connections, or or members of a small extension to the mcs that contains maximally three cells and 
+           has only one connection to the mcs, or connected components of less than ten members.
         """
         isolated_vector = np.zeros( len(self.mesh_one.elements), dtype = 'bool' )
         for element_counter, element in enumerate( self.mesh_one.elements ):
@@ -997,6 +1197,10 @@ class PostProcessor():
                 element.is_in_reduced_mcs_previous = False
                 
     def reindex_global_ids(self):
+        """Reindexes the global ids such that the maximal global id corresponds
+        to the total number of tracked cells. This method ensures a contiuous count
+        of global ids.
+        """
         # currently, the mapped ids are not a continuous count, let's change that
         new_mapped_ids = []
         for counter, mapped_id in enumerate(self.mapped_ids):
@@ -1085,6 +1289,7 @@ class PostProcessor():
         in both meshes, and fills in the cell-to-cell mapping between them based on adjacency
         with already mapped cells.
         
+        This method is deprecated.
         Parameters
         ----------
         
@@ -1100,6 +1305,8 @@ class PostProcessor():
         """Gets a preliminary mapping based on the adjacency to already mapped nodes.
         
         Helper method for fill_in_by_adjacency and identify_division_event.
+
+        This method is deprecated.
 
         Parameters
         ----------
@@ -1164,6 +1371,7 @@ class PostProcessor():
     def get_mapping_candidate_through_already_mapped_neighbours(self, already_mapped_neighbours, preliminary_mapping = None ):
         """Infer which element in mesh two has the neighbours that are images of already_mapped_neighbours.
         
+        This method is deprecated.
         Parameters
         ----------
         
@@ -1424,7 +1632,12 @@ class PostProcessor():
         return definite_mother_cell, [definite_daughter_cell, second_definite_daughter_cell]
 
     def resolve_division_events(self):
-        """TODO: FILL THIS IN
+        """Resolve division events.
+        
+        This method will find all connected components of untracked cells in the second mesh.
+        If a connected component is not at the boundary the mothod
+        resolve_division_event_for_connected_component is called to attempt to resolve
+        the division.
         """
         
 #         for frame_one_id in self.largest_mappings[0]:
@@ -1454,7 +1667,24 @@ class PostProcessor():
         # identify division event on both connected components
         
     def resolve_division_event_for_connected_component(self, connected_component):
-        """TODO: FILL THIS IN
+        """This method will extend the connected component in network two by all it's 
+        first-order adjacent elements. It will then find the corresponding tracked elements
+        to these adjacent elements in the first mesh. It will then construct a connected
+        component of the corresponding elements in the first mesh and subsequently
+        add any of their shared neighbours.
+        
+        Finally, it will remove all tracked cells in the first connected component from the
+        preliminary mapping and pass both connected components to the method identify_division.
+        
+        If identify_division fails a warning is given the preliminary mapping is returned to it's
+        oroginal state. This means that the preliminar mapping remains unaltered if division resolution
+        fails.
+        
+        Parameters
+        ----------
+        
+        connected_component : list of ints
+            list of frame ids of elements in network two that form a connected component.
         """
         # collect_cells_for_connected_component_two
         adjacent_elements = []

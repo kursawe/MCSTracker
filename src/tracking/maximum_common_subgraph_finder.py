@@ -1082,6 +1082,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
     def create_starting_tracking_state(self):
         """Create the starting tracking state for the linear subgraph search
         
+        This method is deprecated.
         Finds an initial mapping that we can be certain about.
         
         Returns:
@@ -1176,6 +1177,8 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         return first_tracking_state
     
     def vertex_far_from_boundary(self, vertex_index):
+        """Todo: fill this in.
+        """
         
         frame_id = self.network_one_node_iterator[vertex_index]
 
@@ -1323,6 +1326,26 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         return localised_tracking_state, reduced_size
 
     def add_new_seed_if_possible(self, tracking_state):
+        """Given the current tracking state it will fill attempt to find a new seed for 
+        extending or starting the current mcs.
+        
+        It will either return a seed who's extended neighbourhood is preserved or who's
+        nearest neighbourhood is preserved and who's nearest neighbourhood does not 
+        include boundary elements of the first mesh.
+        
+        Parameters
+        ----------
+        
+        tracking_state : TrackingState instance
+            The tracking state that we try to extend
+            
+        new_seed_found : bool
+            whether we found a new seed
+            
+        seed_mapping : ( int, int ) tuple
+            The mapping of the found seed. first entry is a frame id in the first mesh,
+            second entry is a frame id in the second mesh.
+        """
         
 #         print 'start searching for initialisation'
 
@@ -1687,6 +1710,30 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         return is_ordered   
 
     def get_two_ordered_neighbour_ids_of_element(self, this_mesh, frame_id, already_mapped_frame_ids):
+        """
+        Get the neighbour ids of frame_id in rotational order.
+        For two neighbours more checks are required to establish the rotational order
+        than if there are more than two neighbours, hence we use a separate function for this case.
+        
+        Parameters
+        ----------
+
+        this_mesh : mesh.Mesh instance
+            a mesh instance
+            
+        frame_id : int
+            A frame id of an element in this_mesh. The element is assumed to have two mapped neighbours
+            only.
+            
+        already_mapped_frame_ids : list of ints
+            frame_ids of elements in this_mesh that have already been mapped.
+            
+        Returns
+        -------
+        
+        ordered_frame_ids : [ int, int ]
+            the two neighbour ids in rotational order
+        """
 
         this_element = this_mesh.get_element_with_frame_id( frame_id )
 
