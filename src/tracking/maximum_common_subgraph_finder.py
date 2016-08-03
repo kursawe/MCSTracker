@@ -1080,7 +1080,21 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             self.total_execution_time = end_time - self.start_time
             
     def vertex_far_from_boundary(self, vertex_index):
-        """Todo: fill this in.
+        """Returns true if a vertex has more than four neighbours and if none of it's 
+           neighbours are on the tissue boundary
+           
+        Parameters
+        ----------
+        
+        vertex_index : int
+            index of vertex in self.network_one.nodes
+            
+        Returns
+        -------
+        
+        vertex_far_from_boundary : bool
+            True if none of the vertex neighbours are at the boundary and if the
+            vertex has at least four neighbours.
         """
         
         frame_id = self.network_one_node_iterator[vertex_index]
