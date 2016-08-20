@@ -80,11 +80,20 @@ third_mesh = mesh.read_frame_from_data(third_filename)
 plt.close('all')
 
 # First wireframe
+
+all_edges_by_elements = first_mcs.collect_elements_of_inner_edges()
+
 first_wireframe = first_mcs.get_polygon_collection()
 first_wireframe.set_facecolor('None')
 first_wireframe.set_edgecolor('black')
-first_wireframe.set_linewidth(2)
+first_wireframe.set_linewidth(0.2)
 first_wireframe_figure = plt.figure()
+for edge_elements in all_edges_by_elements:
+    first_centroid = first_mcs.get_element_with_frame_id(edge_elements.pop()).calculate_centroid()
+    second_centroid = first_mcs.get_element_with_frame_id(edge_elements.pop()).calculate_centroid()
+    plt.plot( [ first_centroid[0], second_centroid[0]],
+              [ first_centroid[1], second_centroid[1]], color = 'black', solid_capstyle = 'round',
+              linewidth=2 )
 first_wireframe_figure.gca().add_collection(first_wireframe)
 first_wireframe_figure.gca().set_aspect('equal')
 first_wireframe_figure.gca().autoscale_view()
@@ -93,11 +102,18 @@ first_wireframe_figure.savefig('first_wireframe.pdf', bbox_inches = 'tight')
 plt.close(first_wireframe_figure)
  
 # Second wireframe
+all_edges_by_elements = second_mcs.collect_elements_of_inner_edges()
 second_wireframe = second_mcs.get_polygon_collection()
 second_wireframe.set_facecolor('None')
 second_wireframe.set_edgecolor('black')
-second_wireframe.set_linewidth(2)
+second_wireframe.set_linewidth(0.2)
 second_wireframe_figure = plt.figure()
+for edge_elements in all_edges_by_elements:
+    first_centroid = second_mcs.get_element_with_frame_id(edge_elements.pop()).calculate_centroid()
+    second_centroid = second_mcs.get_element_with_frame_id(edge_elements.pop()).calculate_centroid()
+    plt.plot( [ first_centroid[0], second_centroid[0]],
+              [ first_centroid[1], second_centroid[1]], color = 'black', solid_capstyle = 'round',
+              linewidth=2 )
 second_wireframe_figure.gca().add_collection(second_wireframe)
 second_wireframe_figure.gca().set_aspect('equal')
 second_wireframe_figure.gca().autoscale_view()

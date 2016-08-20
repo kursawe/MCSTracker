@@ -55,8 +55,9 @@ def make_paper_figure():
     plt.savefig("tracking_figure.pdf")
 
 if __name__ == "__main__":
-    font = {'size'   : 10,
-            'sans-serif' : 'Helvetica'}
+    # font = {'size'   : 10,
+    #         'sans-serif' : 'Helvetica'}
+    font = {'size'   : 10}
     plt.rc('font', **font)
     mpl.rcParams['mathtext.default'] = 'regular'
 

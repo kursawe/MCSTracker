@@ -238,6 +238,24 @@ class Mesh():
             element.id_in_frame = all_ids[counter]
             self.frame_id_dictionary[all_ids[counter]] = counter
             
+    def count_rosettes(self):
+        """Count the number of rosettes in the mesh. A rosette is a node
+        that belongs to more than three elements.
+        
+        Returns
+        -------
+        
+        number_of_rosettes : int
+            number of rosettes in the tissue
+        """
+        number_of_rosettes = 0
+        for this_node in self.nodes:
+            number_elements = len(this_node.adjacent_elements)
+            if number_elements > 3:
+                number_of_rosettes += 1
+        
+        return number_of_rosettes
+                
     def build_frame_id_dictionary(self):
         """Index the frame ids in a dictionary.
            Writes empty dictionary if there is at least one frame id that is set to `None'

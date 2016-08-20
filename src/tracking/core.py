@@ -246,6 +246,7 @@ class DataCollector():
         self.generate_centroid_statistics()
         self.generate_edge_difference_statistics()
         self.generate_tracking_statistics()
+        self.generate_rosette_statistics()
         self.output_directory = None
     
     def set_output_directory(self, output_dir):
@@ -325,6 +326,12 @@ class DataCollector():
                                                     this_mesh,
                                                     counter))
                 
+    def generate_rosette_statistics(self):
+        "Get the total number of rosettes in all meshes"
+        self.number_of_rosettes = 0
+        for this_mesh in self.mesh_sequence:
+            self.number_of_rosettes += this_mesh.count_rosettes()
+
     def generate_death_statistics(self):
         """Get the total number of dying cells in the sequence"""
         self.number_dying_cells = 0
