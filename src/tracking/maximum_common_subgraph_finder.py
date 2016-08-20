@@ -1270,6 +1270,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         first_match_not_yet_found = True
 
         for vertex in first_vertices:
+            vertex_id = self.network_one_node_iterator[vertex]
             possible_images = self.get_mappable_vertices(tracking_state, vertex)
             self.largest_mappings = []
             self.max_found_subgraph_size = 0
@@ -1296,13 +1297,24 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                 if self.max_found_subgraph_size >= max_reduced_size:
                     vertex_is_mapped_equally_in_all_largest_mappings, image_id = self.vertex_is_mapped_equally_in_all_largest_mappings(vertex)
                     if vertex_is_mapped_equally_in_all_largest_mappings:
-                        first_match_not_yet_found = False
-                        first_mapping = [vertex, self.network_two_index_lookup[image_id]]
-                        break
+                        second_class_neighbour_ids = nx.single_source_shortest_path_length(self.network_one, vertex_id, 
+                                                                                           cutoff=2 ).keys()
+                        all_neighbours_mapped = True
+                        for neighbour_id in second_class_neighbour_ids:
+                            if neighbour_id not in self.largest_mappings[0].keys():
+                                all_neighbours_mapped = False
+                                break
+
+                        if all_neighbours_mapped:
+                            first_match_not_yet_found = False
+                            first_mapping = [vertex, self.network_two_index_lookup[image_id]]
+                            found_right_away = True
+                            break
                 
         if first_match_not_yet_found:
             for vertex in first_vertices:
                 if self.vertex_far_from_boundary(vertex):
+                    vertex_id = self.network_one_node_iterator[vertex]
                     possible_images = self.get_mappable_vertices(tracking_state, vertex)
                     self.largest_mappings = []
                     self.max_found_subgraph_size = 0
@@ -1317,15 +1329,32 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                     if self.max_found_subgraph_size >= max_reduced_size:
                         vertex_is_mapped_equally_in_all_largest_mappings, image_id = self.vertex_is_mapped_equally_in_all_largest_mappings(vertex)
                         if vertex_is_mapped_equally_in_all_largest_mappings:
-                            first_match_not_yet_found = False
-                            first_mapping = [vertex, self.network_two_index_lookup[image_id]]
-                            break
+
+                            second_class_neighbour_ids = nx.single_source_shortest_path_length(self.network_one, vertex_id, 
+                                                                                               cutoff=1 ).keys()
+                            all_neighbours_mapped = True
+                            for neighbour_id in second_class_neighbour_ids:
+                                if neighbour_id not in self.largest_mappings[0].keys():
+                                    all_neighbours_mapped = False
+                                    break
+
+                            if all_neighbours_mapped:
+                                first_match_not_yet_found = False
+                                first_mapping = [vertex, self.network_two_index_lookup[image_id]]
+                                found_right_away = False
+                                break
 
         if first_match_not_yet_found:
             first_tracking_state = tracking_state
         else:
             first_tracking_state = self.extend_tracking_state(tracking_state, 
                                                               first_mapping[0], first_mapping[1])
+            print 'found first mapping'
+            print first_mapping
+            print self.mesh_one.get_element_with_frame_id(self.network_one.nodes()[first_mapping[0]]).calculate_centroid()
+            print self.mesh_two.get_element_with_frame_id(self.network_two.nodes()[first_mapping[1]]).calculate_centroid()
+            print self.vertex_far_from_boundary(first_mapping[0])
+            print found_right_away
 
         return ( not first_match_not_yet_found), first_tracking_state
 
