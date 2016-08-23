@@ -1269,7 +1269,10 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         
         first_match_not_yet_found = True
 
+        counter = 0
         for vertex in first_vertices:
+            counter +=1 
+            print counter
             vertex_id = self.network_one_node_iterator[vertex]
             possible_images = self.get_mappable_vertices(tracking_state, vertex)
             self.largest_mappings = []
@@ -1300,10 +1303,10 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                         second_class_neighbour_ids = nx.single_source_shortest_path_length(self.network_one, vertex_id, 
                                                                                            cutoff=2 ).keys()
                         all_neighbours_mapped = True
-                        for neighbour_id in second_class_neighbour_ids:
-                            if neighbour_id not in self.largest_mappings[0].keys():
-                                all_neighbours_mapped = False
-                                break
+#                         for neighbour_id in second_class_neighbour_ids:
+#                             if neighbour_id not in self.largest_mappings[0].keys():
+#                                 all_neighbours_mapped = False
+#                                 break
 
                         if all_neighbours_mapped:
                             first_match_not_yet_found = False
@@ -1311,9 +1314,12 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                             found_right_away = True
                             break
                 
+        print 'second go'
         if first_match_not_yet_found:
             for vertex in first_vertices:
                 if self.vertex_far_from_boundary(vertex):
+                    counter += 1
+                    print counter
                     vertex_id = self.network_one_node_iterator[vertex]
                     possible_images = self.get_mappable_vertices(tracking_state, vertex)
                     self.largest_mappings = []
@@ -1333,10 +1339,10 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                             second_class_neighbour_ids = nx.single_source_shortest_path_length(self.network_one, vertex_id, 
                                                                                                cutoff=1 ).keys()
                             all_neighbours_mapped = True
-                            for neighbour_id in second_class_neighbour_ids:
-                                if neighbour_id not in self.largest_mappings[0].keys():
-                                    all_neighbours_mapped = False
-                                    break
+#                             for neighbour_id in second_class_neighbour_ids:
+#                                 if neighbour_id not in self.largest_mappings[0].keys():
+#                                     all_neighbours_mapped = False
+#                                     break
 
                             if all_neighbours_mapped:
                                 first_match_not_yet_found = False
