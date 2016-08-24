@@ -251,7 +251,7 @@ class Mesh():
         number_of_rosettes = 0
         for this_node in self.nodes:
             number_elements = len(this_node.adjacent_elements)
-            if number_elements > 3:
+            if number_elements > 4:
                 number_of_rosettes += 1
         
         return number_of_rosettes
@@ -1460,10 +1460,11 @@ class Mesh():
 
             # for each adjacent element of these nodes remove these nodes
             # from the element and add the new node instead
+            adjacent_element_ids = []
             for node_id in pointslist:
                 this_node = self.get_node_with_id(node_id)
                 for element in this_node.adjacent_elements:
-                    new_node.adjacent_elements.append(element)
+                    adjacent_element_ids.append(element.id_in_frame)
                     new_element_nodes = []
                     node_already_appended = False
                     for node in element.nodes:
@@ -1480,6 +1481,12 @@ class Mesh():
                                 node_already_appended = True
                     element.nodes = new_element_nodes
             
+            unique_adjacent_element_ids = np.unique(adjacent_element_ids)
+            
+            for element_id in unique_adjacent_element_ids:
+                this_element = self.get_element_with_frame_id(element_id)
+                new_node.adjacent_elements.append(this_element)
+                
             self.remove_list_of_nodes( [self.get_node_with_id(node_id) for node_id in pointslist] )
             
     def plot_with_data(self, filename, real_frame_path):
@@ -1501,14 +1508,24 @@ class Mesh():
 
         real_image = plt.imread(real_frame_path)
 
+        rosette_list = []
         node_positions_list = []
         for node in self.nodes:
             node_positions_list.append(node.position)
+            if len(node.adjacent_elements) > 4:
+                rosette_list.append(node.position)
 
+      
         node_positions = np.array(node_positions_list)
+        rosette_positions = np.array(rosette_list)
         
         node_positions[:,1] *= -1
         node_positions[:,1] += len(real_image[:,0])
+        try:
+            rosette_positions[:,1] *= -1
+            rosette_positions[:,1] += len(real_image[:,0])
+        except:
+            pass
         #transform vertex coordinates to image coordinates
         polygon_collection = self.get_polygon_collection()
         for path in polygon_collection.properties()['paths']:
@@ -1525,6 +1542,10 @@ class Mesh():
         plt.imshow(real_image, cmap = plt.cm.Greys_r)
         overlay_figure.gca().add_collection(polygon_collection)
         plt.scatter(node_positions[:,0], node_positions[:,1], s = 1, color = 'black', alpha = 0.3, marker = 'o', linewidths = 0.0)
+        try:
+            plt.scatter(rosette_positions[:,0], rosette_positions[:,1], s = 100, color = 'black', alpha = 0.3, marker = 'o', linewidths = 0.0)
+        except:
+            pass
         overlay_figure.savefig(filename, bbox_inches = 'tight')
         
     def plot_tracked_data(self, filename, image_path, segmented_path, max_global_id):

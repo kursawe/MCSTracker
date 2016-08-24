@@ -9,6 +9,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from os import path
 from os.path import dirname
+import networkx as nx
 
 def is_isolated(sample_mesh, element):
     adjacent_elements = element.get_ids_of_adjacent_elements()
@@ -39,6 +40,18 @@ def find_weakly_connected_cells(sample_mesh):
                 element.global_id = None   
                 weakly_connected_global_ids.append(this_global_id)
     
+    network_one = sample_mesh.generate_network_of_identified_elements()
+
+    connected_components_in_network_one = list( nx.connected_component_subgraphs(network_one) )
+        
+#         import pdb; pdb.set_trace()
+    for connected_component in connected_components_in_network_one:
+        if len(connected_component) < 10:
+            for frame_id in connected_component:
+                this_global_id = sample_mesh.get_element_with_frame_id(frame_id).global_id
+                weakly_connected_global_ids.append(this_global_id)
+  
+
     return weakly_connected_global_ids
 
 first_filename = path.join(dirname(__file__),'..','..','..','test','test_on_data','data','first_few_frames', 'Segment_0_000.tif')

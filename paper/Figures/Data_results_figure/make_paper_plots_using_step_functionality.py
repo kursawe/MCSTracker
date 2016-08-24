@@ -12,9 +12,23 @@ import numpy as np
 
 data_collector = tracking.analyse_tracked_sequence(path.join(dirname(__file__),'..','..','..','test','test_on_data',
                                                              'output','first_few_frames'))
-                                                   
-# First MCS
+
+
 first_mcs_tracked = data_collector.mesh_sequence[0]
+# identify rosettes:
+
+rosettes = []
+for node in first_mcs_tracked.nodes:
+    order = len(node.adjacent_elements)
+    if order > 3:
+        print order
+        for element in node.adjacent_elements:
+            print element.id_in_frame
+        rosettes.append(node.position)
+
+rosettes_np = np.array(rosettes)
+        
+# First MCS
 first_mcs_polygon_list = []
 first_mcs_centroids = []
 for element in first_mcs_tracked.elements:
@@ -34,6 +48,8 @@ first_mcs_figure = plt.figure()
 first_mcs_figure.gca().add_collection(first_mcs_polygon_collection)
 first_mcs_figure.gca().set_aspect('equal')
 first_mcs_figure.gca().autoscale_view()
+plt.scatter(rosettes_np[:,0], rosettes_np[:,1], marker = (5,2),
+            color = 'yellow', edgecolors = 'face', lw=2, s = 40 )
 plt.axis('off')
 first_mcs_figure.savefig('first_reduced_tracking.pdf', bbox_inches = 'tight')
 first_mcs_centroids_np = np.array(first_mcs_centroids)

@@ -29,7 +29,7 @@ def make_paper_figure():
     rearrangement_data = np.loadtxt("rearrangement_statistics.csv")
     plt.plot( x_values, rearrangement_data, color = 'darkslategray' )
     plt.xlabel("Time (min)")
-    plt.ylabel("Rearrangements (per 5 min)")
+    plt.ylabel("Cell rearrangements (/5 min)")
     
     this_figure.add_subplot(223)
     area_data = np.loadtxt("area_statistics.csv")

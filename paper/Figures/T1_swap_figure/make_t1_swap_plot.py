@@ -53,7 +53,7 @@ def make_t1_swap_figure():
     plt.xlim(0,15)
     plt.ylim(0,100)
     
-    plt.xlabel("Percentage of edges undergoing T1 swaps")
+    plt.xlabel("Percentage of edges undergoing T1 transitions")
     plt.ylabel("Percentage of cells")
     
 #     plt.legend(loc = "center left", bbox_to_anchor=(1, 0.85))

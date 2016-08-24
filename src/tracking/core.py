@@ -223,7 +223,7 @@ def plot_tracked_sequence( sequence_path, image_path, segmented_path, out_path )
         mesh_instance.plot( polygon_file_name, color_by_global_id = True,
                             total_number_of_global_ids = max_global_id)
         
-        mcs_file_path = os.path.join( mcs_path, out_file_name )
+        mcs_file_name = os.path.join( mcs_path, out_file_name )
         mesh_instance.plot( mcs_file_name, color_by_global_id = True,
                             total_number_of_global_ids = max_global_id, reduced_mcs_only = True )
 
@@ -1033,7 +1033,7 @@ class PostProcessor():
                 for frame_id in connected_component:
                     index = self.mesh_one.frame_id_dictionary[frame_id]
                     isolated_vector[index] = True
- 
+  
         self.remove_global_ids_by_boolean_mask(isolated_vector)
 
         self.reindex_global_ids()
