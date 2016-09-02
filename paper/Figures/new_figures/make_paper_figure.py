@@ -34,6 +34,7 @@ def make_paper_figure():
     this_figure.add_subplot(223)
     area_data = np.loadtxt("area_statistics.csv")
     area_x_values = np.arange(0, len(area_data), 1)
+    area_x_values *= 5
     area_data = np.loadtxt("area_statistics.csv")
     plt.plot( area_x_values, area_data, color = 'darkslategray' )
     plt.xlabel("Time (min)")
