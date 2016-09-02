@@ -1303,10 +1303,10 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                         second_class_neighbour_ids = nx.single_source_shortest_path_length(self.network_one, vertex_id, 
                                                                                            cutoff=2 ).keys()
                         all_neighbours_mapped = True
-#                         for neighbour_id in second_class_neighbour_ids:
-#                             if neighbour_id not in self.largest_mappings[0].keys():
-#                                 all_neighbours_mapped = False
-#                                 break
+                        for neighbour_id in second_class_neighbour_ids:
+                            if neighbour_id not in self.largest_mappings[0].keys():
+                                all_neighbours_mapped = False
+                                break
 
                         if all_neighbours_mapped:
                             first_match_not_yet_found = False
@@ -1339,10 +1339,10 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                             second_class_neighbour_ids = nx.single_source_shortest_path_length(self.network_one, vertex_id, 
                                                                                                cutoff=1 ).keys()
                             all_neighbours_mapped = True
-#                             for neighbour_id in second_class_neighbour_ids:
-#                                 if neighbour_id not in self.largest_mappings[0].keys():
-#                                     all_neighbours_mapped = False
-#                                     break
+                            for neighbour_id in second_class_neighbour_ids:
+                                if neighbour_id not in self.largest_mappings[0].keys():
+                                    all_neighbours_mapped = False
+                                    break
 
                             if all_neighbours_mapped:
                                 first_match_not_yet_found = False
