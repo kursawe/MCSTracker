@@ -28,7 +28,7 @@ class TestTrackCropstack(unittest.TestCase):
 #        thread.join()
 
         
-    def test_track_and_write_full_sequence(self):
+    def xest_track_and_write_full_sequence(self):
 
 #         mesh_sequence = mesh.read_sequence_from_data(path.join(dirname(__file__),
 #                                                                '..','test_mesh','output','converted')) 
@@ -39,7 +39,7 @@ class TestTrackCropstack(unittest.TestCase):
                                                      'output','crostack_track'),
                                            start_number = 1, number_meshes = 21 ) 
         
-    def xest_visualize_sequence(self):
+    def test_visualize_sequence(self):
         tracking.plot_tracked_sequence( path.join(dirname(__file__),
                                                   'output','crostack_track'),
                                         path.join(dirname(__file__),
@@ -49,7 +49,7 @@ class TestTrackCropstack(unittest.TestCase):
                                         path.join(dirname(__file__),
                                                   'output','cropstack_track_visualized') )
  
-    def xest_post_process_sequence(self):
+    def test_post_process_sequence(self):
 
         data_collector = tracking.analyse_tracked_sequence(path.join(dirname(__file__),
                                                                      'output','crostack_track'))
@@ -61,6 +61,8 @@ class TestTrackCropstack(unittest.TestCase):
             print this_mesh.get_num_elements()
             print 'average cell area'
             print this_mesh.calculate_average_element_area()
+            print 'number rosettes'
+            print this_mesh.count_rosettes()
             
         for mesh_data in data_collector.steps:
             print 'step no'
@@ -103,6 +105,8 @@ class TestTrackCropstack(unittest.TestCase):
         print data_collector.number_of_tracked_cells
         print 'global ids of shared tracked cells'
         print data_collector.global_ids_of_tracked_cells
+        print 'total number of rosettes'
+        print data_collector.number_of_rosettes
         
         data_collector.set_output_directory(path.join(dirname(__file__), 'output','analysed_cropstack'))
         data_collector.write_area_statistics()
