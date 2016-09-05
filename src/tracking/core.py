@@ -709,6 +709,8 @@ class PostProcessor():
             frame id of cell in second mesh that is to be mapped
         """
 
+#         if mapping_candidate == 219:
+#             import pdb; pdb.set_trace();
         centroid_position = self.mesh_two.get_element_with_frame_id(mapping_candidate).calculate_centroid()
         new_centroid_position = np.array(centroid_position)
         new_centroid_position[1] = 326 - centroid_position[1]
@@ -922,7 +924,8 @@ class PostProcessor():
         preliminary_mappings = self.altered_get_mappings_by_adjacency(network_one)
         
         for node in preliminary_mappings:
-            self.preliminary_mappings[node] = preliminary_mappings[node]
+            if node not in self.preliminary_mappings:
+                self.preliminary_mappings[node] = preliminary_mappings[node]
         
     def altered_get_mappings_by_adjacency(self, connected_component_one):
         """Gets a preliminary mapping based on the adjacency to already mapped nodes.
@@ -985,6 +988,7 @@ class PostProcessor():
                                                                                           minimal_number_of_neighbours )       
                     if mapping_candidate is not None and mapping_candidate not in preliminary_mapping.values():
                         preliminary_mapping[node] = mapping_candidate
+                        print 'preliminary mapping of ' + str(node) + ' is ' + str(mapping_candidate)
                     else:
                         # this element is still not uniquely identifiable. If all its neighbours have been mapped, then
                         # this means that it actually does not exist in mesh 2, so we stop looking for a match.
@@ -1177,6 +1181,7 @@ class PostProcessor():
             if pair_is_in_other_mappings:
                 preserved_mappings[key] = value
                 
+        print preserved_mappings
         for global_id, frame_one_id in enumerate(preserved_mappings):
             self.mesh_one.get_element_with_frame_id(frame_one_id).global_id = global_id
             self.mesh_two.get_element_with_frame_id(self.largest_mappings[0][frame_one_id]).global_id = global_id
@@ -1212,7 +1217,9 @@ class PostProcessor():
         mother_cell = None
         daughter_cells = None
  
+        print 'mark one'
         if len(potential_mother_cells) == 0:
+            print 'mark two'
             # In this case one of the daughter cells is triangular.
             # In this case it is not possible to say by adjacency only which cell is the mother cell,
             # Need to make geometric argument
@@ -1223,19 +1230,22 @@ class PostProcessor():
             potential_daughter_cells += self.mesh_two.get_not_yet_mapped_shared_neighbour_ids( bordering_cells_mapping.values() ) 
             mother_cell, daughter_cells = self.identify_division_event(new_potential_mother_cells, potential_daughter_cells,
                                                                   mappings_based_on_adjacency)
-   
+    
             connected_component_one.remove_node( mother_cell )
             connected_component_two.remove_nodes_from( daughter_cells )
-   
+    
             self.altered_fill_in_by_adjacency( connected_component_one )
-  
+#   
         elif len(potential_mother_cells) == 1:
+            print 'mark three'
             potential_mother_cell = potential_mother_cells[0]
             if potential_mother_cell in mappings_based_on_adjacency:
                 del mappings_based_on_adjacency[potential_mother_cell]
             for frame_id in mappings_based_on_adjacency:
-                self.preliminary_mappings[frame_id] = mappings_based_on_adjacency[frame_id]
+                if frame_id not in self.preliminary_mappings and mappings_based_on_adjacency[frame_id] not in self.preliminary_mappings.values():
+                    self.preliminary_mappings[frame_id] = mappings_based_on_adjacency[frame_id]
         else:
+            print 'mark four'
             potential_daughter_cells = self.mesh_two.get_not_yet_mapped_shared_neighbour_ids( bordering_cells_mapping.values() )
 #             assert ( len(potential_daughter_cells) > 1)
             if len( potential_daughter_cells ) <= 1 :
@@ -1448,8 +1458,10 @@ class PostProcessor():
                 old_mappings[frame_id] = self.largest_mappings[0][frame_id]
             global_id = self.mesh_one.get_element_with_frame_id(frame_id).global_id
             try:
+                print 'trying to remove global id ' + str(global_id)
                 self.mesh_two.get_element_with_global_id(global_id).global_id = None
                 self.mapped_ids.remove(global_id)
+                print 'removed global id ' + str(global_id)
             except KeyError:
                 pass
             self.mesh_one.get_element_with_frame_id(frame_id).global_id = None
