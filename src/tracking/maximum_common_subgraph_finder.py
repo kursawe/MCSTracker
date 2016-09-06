@@ -561,6 +561,7 @@ class ConnectedMaximumCommonSubgraphFinder(KrissinelMaximumCommonSubgraphFinder)
                                                 tracking_state.not_blacklisted_vector )
                 
                 if sum(mappable_mask) == 0:
+                    print 'picking non-adjacent next vertex, dude'
                     mappable_mask = np.logical_and( tracking_state.counts_of_mappable_vertices > 0,
                                                     tracking_state.not_blacklisted_vector )
                  
@@ -585,7 +586,7 @@ class ConnectedMaximumCommonSubgraphFinder(KrissinelMaximumCommonSubgraphFinder)
             
         return next_vertex_index
 
-    def is_extendable(self, tracking_state, is_global = False):
+    def is_extendable(self, tracking_state, is_global = False, is_adjacent = True):
         """Check whether the current subgraph is extendable to a suitable maximum common subgraph
         Overrides and uses KrissinelMaximumCommonSubgraphFinder.is_extendable()
         
@@ -612,13 +613,19 @@ class ConnectedMaximumCommonSubgraphFinder(KrissinelMaximumCommonSubgraphFinder)
             mappable_mask = np.logical_and( tracking_state.counts_of_mappable_vertices > 0,
                                             tracking_state.connections_to_current_subgraph > 0)
         else: 
-            mappable_mask = np.logical_and( np.logical_and( tracking_state.counts_of_mappable_vertices > 0,
-                                            tracking_state.connections_to_current_subgraph > 0 ),
-                                            tracking_state.not_blacklisted_vector )
-                
-            if sum(mappable_mask) == 0:
+            if is_adjacent:
+                mappable_mask = np.logical_and( np.logical_and( tracking_state.counts_of_mappable_vertices > 0,
+                                                tracking_state.connections_to_current_subgraph > 0 ),
+                                                tracking_state.not_blacklisted_vector )
+            else:
+                print 'checking non-adjacent mappability.'
                 mappable_mask = np.logical_and( tracking_state.counts_of_mappable_vertices > 0,
                                                 tracking_state.not_blacklisted_vector )
+                
+#             if sum(mappable_mask) == 0:
+# #                 tracking_state.not_blacklisted_vector[:] = True
+#                 mappable_mask = np.logical_and( tracking_state.counts_of_mappable_vertices > 0,
+#                                                 tracking_state.not_blacklisted_vector )
 
         number_of_adjacent_vertices_still_mappable_in_network_one = np.sum( mappable_mask )
 
@@ -1274,7 +1281,6 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             The mapping of the found seed. first entry is a frame id in the first mesh,
             second entry is a frame id in the second mesh.
         """
-        
 
         first_vertices = self.get_vertices_ordered_by_number_of_matches( tracking_state )
         
@@ -1389,34 +1395,66 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         subgraph_is_extendible = True
         new_seed_could_be_found = True
         
-        new_seed_could_be_found, tracking_state = self.add_new_seed_if_possible( tracking_state )
         subgraph_is_still_changing = True
-        while subgraph_is_still_changing:
-            old_id_map = tracking_state.id_map.copy()
-            tracking_state.not_blacklisted_vector[:] = True
-            subgraph_is_extendible = self.is_extendable(tracking_state, is_global = True)
-            while subgraph_is_extendible:
-                vertex = self.pick_next_vertex(tracking_state, is_global = True )
-                    
-                possible_images = self.get_mappable_vertices(tracking_state, vertex)
-
-                self.max_found_subgraph_size = 0
-                self.largest_mappings = []
-                
-                for image in possible_images:
-                    new_tracking_state,_ = self.create_localised_tracking_state( tracking_state, vertex, image )
-                    self.backtrack( new_tracking_state )
-                    
-                reduced_localised_tracking_state,_ = self.create_localised_tracking_state(tracking_state, vertex)
-                self.backtrack( reduced_localised_tracking_state )
-                
-                tracking_state = self.extend_tracking_state_and_largest_mapping_if_feasible( tracking_state, vertex )
-                
+        has_been_extended = True
+        while new_seed_could_be_found:
+            new_seed_could_be_found, tracking_state = self.add_new_seed_if_possible( tracking_state )
+            while subgraph_is_still_changing:
+                old_id_map = tracking_state.id_map.copy()
+                tracking_state.not_blacklisted_vector[:] = True
                 subgraph_is_extendible = self.is_extendable(tracking_state, is_global = True)
-                
-            subgraph_is_still_changing = not old_id_map == tracking_state.id_map
+                while subgraph_is_extendible:
+                    vertex = self.pick_next_vertex(tracking_state, is_global = True )
+                        
+                    possible_images = self.get_mappable_vertices(tracking_state, vertex)
+
+                    self.max_found_subgraph_size = 0
+                    self.largest_mappings = []
+                        
+                    for image in possible_images:
+                        new_tracking_state,_ = self.create_localised_tracking_state( tracking_state, vertex, image )
+                        self.backtrack( new_tracking_state )
+                        
+                    reduced_localised_tracking_state,_ = self.create_localised_tracking_state(tracking_state, vertex)
+                    self.backtrack( reduced_localised_tracking_state )
+                    
+                    tracking_state = self.extend_tracking_state_and_largest_mapping_if_feasible( tracking_state, vertex )
+                    
+                    subgraph_is_extendible = self.is_extendable(tracking_state, is_global = True)
+
+                subgraph_is_still_changing = not old_id_map == tracking_state.id_map
+
+#             old_id_map = tracking_state.id_map.copy()
+#             tracking_state.not_blacklisted_vector[:] = True
+#             subgraph_has_changed = False
+#             subgraph_is_extendible = self.is_extendable(tracking_state, is_global = True, is_adjacent = False)
+#             print 'I get here'
+#             print subgraph_has_changed
+#             print subgraph_is_extendible
+#             new_seed_could_be_found, tracking_state = self.add_new_seed_if_possible( tracking_state )
+#             while subgraph_is_extendible and not subgraph_has_changed:
+#                 vertex = self.pick_next_vertex(tracking_state, is_global = True )
+#                 print 'inspecting a possible seed, the new way'
+#                     
+#                 possible_images = self.get_mappable_vertices(tracking_state, vertex)
+# 
+#                 self.max_found_subgraph_size = 0
+#                 self.largest_mappings = []
+#                 
+#                 for image in possible_images:
+#                     new_tracking_state,_ = self.create_localised_tracking_state( tracking_state, vertex, image )
+#                     self.backtrack( new_tracking_state )
+#                     
+#                 reduced_localised_tracking_state,_ = self.create_localised_tracking_state(tracking_state, vertex)
+#                 self.backtrack( reduced_localised_tracking_state )
+#                 
+#                 tracking_state = self.extend_tracking_state_and_largest_mapping_if_feasible( tracking_state, vertex )
+#                 
+#                 subgraph_is_extendible = self.is_extendable(tracking_state, is_global = True, is_adjacent = False)
+#             subgraph_has_changed = new_seed_could_be_found
+#             has_been_extended = subgraph_has_changed
         
-        self.largest_mappings = [tracking_state.id_map]
+#         self.largest_mappings = [tracking_state.id_map]
  
         
 #         while new_seed_could_be_found:
