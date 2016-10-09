@@ -560,11 +560,6 @@ class ConnectedMaximumCommonSubgraphFinder(KrissinelMaximumCommonSubgraphFinder)
                                                 tracking_state.connections_to_current_subgraph > 0 ),
                                                 tracking_state.not_blacklisted_vector )
                 
-                if sum(mappable_mask) == 0:
-                    print 'picking non-adjacent next vertex, dude'
-                    mappable_mask = np.logical_and( tracking_state.counts_of_mappable_vertices > 0,
-                                                    tracking_state.not_blacklisted_vector )
-                 
             minimum_number_of_mappable_vertices = np.min(tracking_state.counts_of_mappable_vertices[mappable_mask])
             possible_vertices_with_minimal_matches = np.logical_and( mappable_mask,
                                                                      tracking_state.counts_of_mappable_vertices ==
@@ -575,7 +570,6 @@ class ConnectedMaximumCommonSubgraphFinder(KrissinelMaximumCommonSubgraphFinder)
             possible_vertices_with_maximal_connection = np.logical_and ( possible_vertices_with_minimal_matches, 
                                                                          tracking_state.connections_to_current_subgraph ==
                                                                          maximum_number_of_connections )
-
             possible_next_vertex_indices = np.nonzero( possible_vertices_with_maximal_connection )
             
             if tracking_state.inverse_sparse_matrix_lookup is None:
@@ -586,7 +580,7 @@ class ConnectedMaximumCommonSubgraphFinder(KrissinelMaximumCommonSubgraphFinder)
             
         return next_vertex_index
 
-    def is_extendable(self, tracking_state, is_global = False, is_adjacent = True):
+    def is_extendable(self, tracking_state, is_global = False):
         """Check whether the current subgraph is extendable to a suitable maximum common subgraph
         Overrides and uses KrissinelMaximumCommonSubgraphFinder.is_extendable()
         
@@ -605,28 +599,16 @@ class ConnectedMaximumCommonSubgraphFinder(KrissinelMaximumCommonSubgraphFinder)
             maximal common subgraph
         """
         if not is_global:
-#             if not np.sum( tracking_state.connections_to_current_subgraph ) == 0:
-#                 mappable_mask = np.logical_and( tracking_state.counts_of_mappable_vertices > 0,
-#                                                 tracking_state.connections_to_current_subgraph > 0)
-#             else:
-#                 mappable_mask = ( tracking_state.counts_of_mappable_vertices > 0 )
-            mappable_mask = np.logical_and( tracking_state.counts_of_mappable_vertices > 0,
-                                            tracking_state.connections_to_current_subgraph > 0)
-        else: 
-            if is_adjacent:
-                mappable_mask = np.logical_and( np.logical_and( tracking_state.counts_of_mappable_vertices > 0,
-                                                tracking_state.connections_to_current_subgraph > 0 ),
-                                                tracking_state.not_blacklisted_vector )
-            else:
-                print 'checking non-adjacent mappability.'
+            if not np.sum( tracking_state.connections_to_current_subgraph ) == 0:
                 mappable_mask = np.logical_and( tracking_state.counts_of_mappable_vertices > 0,
-                                                tracking_state.not_blacklisted_vector )
-                
-#             if sum(mappable_mask) == 0:
-# #                 tracking_state.not_blacklisted_vector[:] = True
-#                 mappable_mask = np.logical_and( tracking_state.counts_of_mappable_vertices > 0,
-#                                                 tracking_state.not_blacklisted_vector )
-
+                                                tracking_state.connections_to_current_subgraph > 0)
+            else:
+                mappable_mask = ( tracking_state.counts_of_mappable_vertices > 0 )
+        else: 
+            mappable_mask = np.logical_and( np.logical_and( tracking_state.counts_of_mappable_vertices > 0,
+                                            tracking_state.connections_to_current_subgraph > 0 ),
+                                            tracking_state.not_blacklisted_vector )
+ 
         number_of_adjacent_vertices_still_mappable_in_network_one = np.sum( mappable_mask )
 
         is_extendable = ( KrissinelMaximumCommonSubgraphFinder.is_extendable(self, tracking_state) and
@@ -1281,16 +1263,13 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             The mapping of the found seed. first entry is a frame id in the first mesh,
             second entry is a frame id in the second mesh.
         """
+        
 
         first_vertices = self.get_vertices_ordered_by_number_of_matches( tracking_state )
         
         first_match_not_yet_found = True
 
-        counter = 0
         for vertex in first_vertices:
-            counter +=1 
-            print counter
-            vertex_id = self.network_one_node_iterator[vertex]
             possible_images = self.get_mappable_vertices(tracking_state, vertex)
             self.largest_mappings = []
             self.max_found_subgraph_size = 0
@@ -1317,27 +1296,13 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                 if self.max_found_subgraph_size >= max_reduced_size:
                     vertex_is_mapped_equally_in_all_largest_mappings, image_id = self.vertex_is_mapped_equally_in_all_largest_mappings(vertex)
                     if vertex_is_mapped_equally_in_all_largest_mappings:
-                        second_class_neighbour_ids = nx.single_source_shortest_path_length(self.network_one, vertex_id, 
-                                                                                           cutoff=2 ).keys()
-                        all_neighbours_mapped = True
-#                         for neighbour_id in second_class_neighbour_ids:
-#                             if neighbour_id not in self.largest_mappings[0].keys():
-#                                 all_neighbours_mapped = False
-#                                 break
-
-                        if all_neighbours_mapped:
-                            first_match_not_yet_found = False
-                            first_mapping = [vertex, self.network_two_index_lookup[image_id]]
-                            found_right_away = True
-                            break
+                        first_match_not_yet_found = False
+                        first_mapping = [vertex, self.network_two_index_lookup[image_id]]
+                        break
                 
-        print 'second go'
         if first_match_not_yet_found:
             for vertex in first_vertices:
                 if self.vertex_far_from_boundary(vertex):
-                    counter += 1
-                    print counter
-                    vertex_id = self.network_one_node_iterator[vertex]
                     possible_images = self.get_mappable_vertices(tracking_state, vertex)
                     self.largest_mappings = []
                     self.max_found_subgraph_size = 0
@@ -1352,32 +1317,15 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                     if self.max_found_subgraph_size >= max_reduced_size:
                         vertex_is_mapped_equally_in_all_largest_mappings, image_id = self.vertex_is_mapped_equally_in_all_largest_mappings(vertex)
                         if vertex_is_mapped_equally_in_all_largest_mappings:
-
-                            second_class_neighbour_ids = nx.single_source_shortest_path_length(self.network_one, vertex_id, 
-                                                                                               cutoff=1 ).keys()
-                            all_neighbours_mapped = True
-#                             for neighbour_id in second_class_neighbour_ids:
-#                                 if neighbour_id not in self.largest_mappings[0].keys():
-#                                     all_neighbours_mapped = False
-#                                     break
-
-                            if all_neighbours_mapped:
-                                first_match_not_yet_found = False
-                                first_mapping = [vertex, self.network_two_index_lookup[image_id]]
-                                found_right_away = False
-                                break
+                            first_match_not_yet_found = False
+                            first_mapping = [vertex, self.network_two_index_lookup[image_id]]
+                            break
 
         if first_match_not_yet_found:
             first_tracking_state = tracking_state
         else:
             first_tracking_state = self.extend_tracking_state(tracking_state, 
                                                               first_mapping[0], first_mapping[1])
-            print 'found first mapping'
-            print first_mapping
-            print self.mesh_one.get_element_with_frame_id(self.network_one.nodes()[first_mapping[0]]).calculate_centroid()
-            print self.mesh_two.get_element_with_frame_id(self.network_two.nodes()[first_mapping[1]]).calculate_centroid()
-            print self.vertex_far_from_boundary(first_mapping[0])
-            print found_right_away
 
         return ( not first_match_not_yet_found), first_tracking_state
 
@@ -1395,96 +1343,34 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         subgraph_is_extendible = True
         new_seed_could_be_found = True
         
-        subgraph_is_still_changing = True
-        has_been_extended = True
         while new_seed_could_be_found:
-            new_seed_could_be_found, tracking_state = self.add_new_seed_if_possible( tracking_state )
-            while subgraph_is_still_changing:
-                old_id_map = tracking_state.id_map.copy()
-                tracking_state.not_blacklisted_vector[:] = True
-                subgraph_is_extendible = self.is_extendable(tracking_state, is_global = True)
-                while subgraph_is_extendible:
-                    vertex = self.pick_next_vertex(tracking_state, is_global = True )
-                        
-                    possible_images = self.get_mappable_vertices(tracking_state, vertex)
-
-                    self.max_found_subgraph_size = 0
-                    self.largest_mappings = []
-                        
-                    for image in possible_images:
-                        new_tracking_state,_ = self.create_localised_tracking_state( tracking_state, vertex, image )
-                        self.backtrack( new_tracking_state )
-                        
-                    reduced_localised_tracking_state,_ = self.create_localised_tracking_state(tracking_state, vertex)
-                    self.backtrack( reduced_localised_tracking_state )
-                    
-                    tracking_state = self.extend_tracking_state_and_largest_mapping_if_feasible( tracking_state, vertex )
-                    
+            new_seed_could_be_found, tracking_state = self.add_new_seed_if_possible(tracking_state)
+            if new_seed_could_be_found:
+                subgraph_is_still_changing = True
+                while subgraph_is_still_changing:
+                    old_id_map = tracking_state.id_map.copy()
+                    tracking_state.not_blacklisted_vector[:] = True
                     subgraph_is_extendible = self.is_extendable(tracking_state, is_global = True)
+                    while subgraph_is_extendible:
+                        vertex = self.pick_next_vertex(tracking_state, is_global = True )
+                            
+                        possible_images = self.get_mappable_vertices(tracking_state, vertex)
 
-                subgraph_is_still_changing = not old_id_map == tracking_state.id_map
-
-#             old_id_map = tracking_state.id_map.copy()
-#             tracking_state.not_blacklisted_vector[:] = True
-#             subgraph_has_changed = False
-#             subgraph_is_extendible = self.is_extendable(tracking_state, is_global = True, is_adjacent = False)
-#             print 'I get here'
-#             print subgraph_has_changed
-#             print subgraph_is_extendible
-#             new_seed_could_be_found, tracking_state = self.add_new_seed_if_possible( tracking_state )
-#             while subgraph_is_extendible and not subgraph_has_changed:
-#                 vertex = self.pick_next_vertex(tracking_state, is_global = True )
-#                 print 'inspecting a possible seed, the new way'
-#                     
-#                 possible_images = self.get_mappable_vertices(tracking_state, vertex)
-# 
-#                 self.max_found_subgraph_size = 0
-#                 self.largest_mappings = []
-#                 
-#                 for image in possible_images:
-#                     new_tracking_state,_ = self.create_localised_tracking_state( tracking_state, vertex, image )
-#                     self.backtrack( new_tracking_state )
-#                     
-#                 reduced_localised_tracking_state,_ = self.create_localised_tracking_state(tracking_state, vertex)
-#                 self.backtrack( reduced_localised_tracking_state )
-#                 
-#                 tracking_state = self.extend_tracking_state_and_largest_mapping_if_feasible( tracking_state, vertex )
-#                 
-#                 subgraph_is_extendible = self.is_extendable(tracking_state, is_global = True, is_adjacent = False)
-#             subgraph_has_changed = new_seed_could_be_found
-#             has_been_extended = subgraph_has_changed
-        
-#         self.largest_mappings = [tracking_state.id_map]
- 
-        
-#         while new_seed_could_be_found:
-#             new_seed_could_be_found, tracking_state = self.add_new_seed_if_possible(tracking_state)
-#             if new_seed_could_be_found:
-#                 subgraph_is_still_changing = True
-#                 while subgraph_is_still_changing:
-#                     old_id_map = tracking_state.id_map.copy()
-#                     tracking_state.not_blacklisted_vector[:] = True
-#                     subgraph_is_extendible = self.is_extendable(tracking_state, is_global = True)
-#                     while subgraph_is_extendible:
-#                         vertex = self.pick_next_vertex(tracking_state, is_global = True )
-#                             
-#                         possible_images = self.get_mappable_vertices(tracking_state, vertex)
-# 
-#                         self.max_found_subgraph_size = 0
-#                         self.largest_mappings = []
-#                         
-#                         for image in possible_images:
-#                             new_tracking_state,_ = self.create_localised_tracking_state( tracking_state, vertex, image )
-#                             self.backtrack( new_tracking_state )
-#                             
-#                         reduced_localised_tracking_state,_ = self.create_localised_tracking_state(tracking_state, vertex)
-#                         self.backtrack( reduced_localised_tracking_state )
-#                         
-#                         tracking_state = self.extend_tracking_state_and_largest_mapping_if_feasible( tracking_state, vertex )
-#                         
-#                         subgraph_is_extendible = self.is_extendable(tracking_state, is_global = True)
-#                         
-#                     subgraph_is_still_changing = not old_id_map == tracking_state.id_map
+                        self.max_found_subgraph_size = 0
+                        self.largest_mappings = []
+                        
+                        for image in possible_images:
+                            new_tracking_state,_ = self.create_localised_tracking_state( tracking_state, vertex, image )
+                            self.backtrack( new_tracking_state )
+                            
+                        reduced_localised_tracking_state,_ = self.create_localised_tracking_state(tracking_state, vertex)
+                        self.backtrack( reduced_localised_tracking_state )
+                        
+                        tracking_state = self.extend_tracking_state_and_largest_mapping_if_feasible( tracking_state, vertex )
+                        
+                        subgraph_is_extendible = self.is_extendable(tracking_state, is_global = True)
+                        
+                    subgraph_is_still_changing = not old_id_map == tracking_state.id_map
         
         self.largest_mappings = [tracking_state.id_map]
             
