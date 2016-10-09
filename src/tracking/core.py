@@ -78,6 +78,7 @@ def track_and_write_sequence(input_path, output_path, start_number = 1, number_m
             previous_mesh = previous_sequence[counter -1]
             corresponding_mesh = next_sequence[counter]
             try:
+                print 'tracking step' + str(counter)
                 track(previous_mesh, corresponding_mesh)
             except FirstIndexException:
                 print "Could not find first index in tracking step " + str(counter)
@@ -1008,39 +1009,39 @@ class PostProcessor():
            two isolated connections, or or members of a small extension to the mcs that contains maximally three cells and 
            has only one connection to the mcs, or connected components of less than ten members.
         """
-        isolated_vector = np.zeros( len(self.mesh_one.elements), dtype = 'bool' )
-        for element_counter, element in enumerate( self.mesh_one.elements ):
-            if element.global_id is not None:
-#                 if element.global_id == 166:
-#                     import pdb; pdb.set_trace()
-                if self.is_isolated( element ):
-                    isolated_vector[ element_counter ] = True
-                mapped_neighbours = self.mesh_one.get_already_mapped_adjacent_element_ids( element.id_in_frame )
-                if len(mapped_neighbours) == 2:
-                    first_neighbour_element = self.mesh_one.get_element_with_frame_id( mapped_neighbours[0] )
-                    second_neighbour_element = self.mesh_one.get_element_with_frame_id( mapped_neighbours[1] )
-                    if self.is_isolated(first_neighbour_element) or self.is_isolated(second_neighbour_element):
-                        isolated_vector[element_counter] = True 
-                     
-        self.remove_global_ids_by_boolean_mask(isolated_vector)
-             
-        isolated_vector[:] = False
-        # Now, let's deal with connected components
-
-        network_one = self.mesh_one.generate_network_of_identified_elements()
-
-        connected_components_in_network_one = list( nx.connected_component_subgraphs(network_one) )
-        
-#         import pdb; pdb.set_trace()
-        for connected_component in connected_components_in_network_one:
-            if len(connected_component) < 10:
-                for frame_id in connected_component:
-                    index = self.mesh_one.frame_id_dictionary[frame_id]
-                    isolated_vector[index] = True
-  
-        self.remove_global_ids_by_boolean_mask(isolated_vector)
-
-        self.reindex_global_ids()
+#         isolated_vector = np.zeros( len(self.mesh_one.elements), dtype = 'bool' )
+#         for element_counter, element in enumerate( self.mesh_one.elements ):
+#             if element.global_id is not None:
+# #                 if element.global_id == 166:
+# #                     import pdb; pdb.set_trace()
+#                 if self.is_isolated( element ):
+#                     isolated_vector[ element_counter ] = True
+#                 mapped_neighbours = self.mesh_one.get_already_mapped_adjacent_element_ids( element.id_in_frame )
+#                 if len(mapped_neighbours) == 2:
+#                     first_neighbour_element = self.mesh_one.get_element_with_frame_id( mapped_neighbours[0] )
+#                     second_neighbour_element = self.mesh_one.get_element_with_frame_id( mapped_neighbours[1] )
+#                     if self.is_isolated(first_neighbour_element) or self.is_isolated(second_neighbour_element):
+#                         isolated_vector[element_counter] = True 
+#                      
+#         self.remove_global_ids_by_boolean_mask(isolated_vector)
+#              
+#         isolated_vector[:] = False
+#         # Now, let's deal with connected components
+# 
+#         network_one = self.mesh_one.generate_network_of_identified_elements()
+# 
+#         connected_components_in_network_one = list( nx.connected_component_subgraphs(network_one) )
+#         
+# #         import pdb; pdb.set_trace()
+#         for connected_component in connected_components_in_network_one:
+#             if len(connected_component) < 10:
+#                 for frame_id in connected_component:
+#                     index = self.mesh_one.frame_id_dictionary[frame_id]
+#                     isolated_vector[index] = True
+#   
+#         self.remove_global_ids_by_boolean_mask(isolated_vector)
+# 
+#         self.reindex_global_ids()
 #         
         # apply reduced_mcs flags:
         for element in self.mesh_one.elements:
