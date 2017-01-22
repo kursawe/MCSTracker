@@ -1,7 +1,7 @@
 Copyright 2016 Jochen Kursawe. See the LICENSE file at the top-level directory 
 of this distribution and at https://github.com/kursawe/MCSTracker/blob/master/LICENSE.
 
-Welcome to the repository for our cell tracking project! If you want to learn more about this project please have a look at our paper `Robust cell tracking in epithelial tissues through identification of maximum common subgraphs' in the Journal of the Royal Society Interface ( http://rsif.royalsocietypublishing.org/content/13/124/20160725 )
+Welcome to the repository for our cell tracking project! If you want to learn more about this project please have a look at our paper `Robust cell tracking in epithelial tissues through identification of maximum common subgraphs' in the Journal of the Royal Society Interface (http://rsif.royalsocietypublishing.org/content/13/124/20160725)
 
 Currently, the repository contains four folders:
 
