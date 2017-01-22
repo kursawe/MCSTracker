@@ -1,7 +1,11 @@
 Copyright 2016 Jochen Kursawe. See the LICENSE file at the top-level directory 
 of this distribution and at https://github.com/kursawe/MCSTracker/blob/master/LICENSE.
 
-Welcome to the repository for our cell tracking project! Currently, the repository contains three folders:
+Welcome to the repository for our cell tracking project! If you want to learn more about this project please have
+a look at our paper `Robust cell tracking in epithelial tissues through identification of maximum common subgraphs'
+in the Journal of the Royal Society Interface ( http://rsif.royalsocietypublishing.org/content/13/124/20160725 )
+
+Currently, the repository contains four folders:
 
 ./src This folder contains python modules and packages that we have build for the project. There are class definitions for meshes, elements, and nodes, and functions to draw meshes with different properties. Tracking algorithms are in the src/tracking package.
 
@@ -11,20 +15,23 @@ Welcome to the repository for our cell tracking project! Currently, the reposito
     make api
     make html 
 
+./paper This folder contains all source files for the figures in our paper 
+
 Installation:
 ------------
 
-The code itself: In order to access the modules and packages from your python interpreter you will need to add the ./src folder to your PYTHONPATH environment variable. In most linux distrubtions you can do so by adding the line
+The code is written using python 2.7. In order to access the modules and packages in this project from your python interpreter you will need to add the ./src folder to your PYTHONPATH environment variable. In most linux distrubtions you can do so by adding the line
 
     export PYTHONPATH="$PYTHONPATH:/path/to/project/src"
 
 to your ~/.bashrc file.
 
-Dependencies: current dependencies are 
+All dependencies are listed below. In brackets are download instructions that work on Ubuntu 16.04.
 
 * nosetests (sudo apt-get install python-nose),
 * numpy and scipy (http://www.scipy.org/install.html), 
 * networkx (sudo pip install networkx),
+* mahotas (sudo pip install mahotas)
 * pyhull (sudo pip install pyhull), 
 * sphinx (sudo apt-get install python-sphinx python-numpydoc) 
 * openCV (sudo apt-get install libopencv-dev python-opencv)
