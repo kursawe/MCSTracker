@@ -131,18 +131,18 @@ class KrissinelMaximumCommonSubgraphFinder:
 
             # identify which nodes in network two could be corresponding
             for node_two_index, node_two in enumerate(self.network_two.nodes()):
-                node_two_is_mappable_to_node_one = ( np.linalg.norm(self.network_one.node[node_one]['position'] -
-                                                                    self.network_two.node[node_two]['position'] ) < cutoff_distance 
-                                                     and self.network_one.node[node_one]['num_neighbours'] == 
-                                                     self.network_two.node[node_two]['num_neighbours'])
+                node_two_is_mappable_to_node_one = ( np.linalg.norm(self.network_one.nodes[node_one]['position'] -
+                                                                    self.network_two.nodes[node_two]['position'] ) < cutoff_distance 
+                                                     and self.network_one.nodes[node_one]['num_neighbours'] == 
+                                                     self.network_two.nodes[node_two]['num_neighbours'])
 
                 # if a node is mappable, remember that
                 if node_two_is_mappable_to_node_one:
                     matches_for_node_one.append(node_two_index)
             
             # sort the matches by their distance to the original node
-            matches_for_node_one.sort(key = lambda x: np.linalg.norm(self.network_two.node[self.network_two.nodes()[x]]['position']-
-                                                                     self.network_one.node[node_one]['position']))
+            matches_for_node_one.sort(key = lambda x: np.linalg.norm(self.network_two.nodes[self.network_two.nodes()[x]]['position']-
+                                                                     self.network_one.nodes[node_one]['position']))
 
             # put what we learned in the lists
             vertex_matches.append(matches_for_node_one)

@@ -179,9 +179,9 @@ class TestMesh(unittest.TestCase):
         self.assertEquals(network_representation.number_of_edges(), 56)
         
         for element in my_mesh.elements:
-            np.testing.assert_almost_equal(network_representation.node[element.id_in_frame]['position'],
+            np.testing.assert_almost_equal(network_representation.nodes[element.id_in_frame]['position'],
                                            element.calculate_centroid())
-            self.assertEquals(network_representation.node[element.id_in_frame]['num_neighbours'], 6)
+            self.assertEquals(network_representation.nodes[element.id_in_frame]['num_neighbours'], 6)
     
     def test_assign_global_ids(self):
         """test whether we can assign global ids correctly"""

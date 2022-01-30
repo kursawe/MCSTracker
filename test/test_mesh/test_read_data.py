@@ -38,7 +38,7 @@ class TestReadData(unittest.TestCase):
         self.assertEqual(len(mesh_sequence), 3)
 
         for frame_number, this_mesh in enumerate( mesh_sequence ):
-            print 'reading frame number ' + str(frame_number)
+            print('reading frame number ' + str(frame_number))
             this_network = this_mesh.generate_network()
             this_mesh.plot(path.join(dirname(__file__),'output','first_frames_' + str(frame_number) + '.pdf'))
             this_network = this_mesh.generate_network()

@@ -45,9 +45,9 @@ class TestTrackGlobalMovements(unittest.TestCase):
         mesh_one.plot(path.join(dirname(__file__),'output','mesh_before_translation.pdf'))
         mesh_two.plot(path.join(dirname(__file__),'output','mesh_after_translation.pdf'))
  
-        print 'call tracker'
+        print('call tracker')
         tracked_ids = tracking.track(mesh_one, mesh_two)
-        print 'tracker returned'
+        print('tracker returned')
   
         mesh_one.plot(path.join(dirname(__file__),'output','larger_mesh_before_translation'), color_by_global_id = True, 
                       total_number_of_global_ids = len(tracked_ids) )
@@ -131,10 +131,10 @@ class TestTrackGlobalMovements(unittest.TestCase):
             if element_index in ground_truth_indices:
                 ground_truth[element.id_in_frame] = mesh_two.elements[ground_truth_indices[element_index]].id_in_frame
          
-        print 'call tracker'
+        print('call tracker')
         tracked_ids = tracking.track(mesh_one, mesh_two)
 #         tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
-        print 'tracker returned'
+        print('tracker returned')
   
         mesh_one.plot(path.join(dirname(__file__),'output', 'special_translation_mesh_one.pdf'), color_by_global_id = True, 
                       total_number_of_global_ids = len(tracked_ids) )
@@ -190,10 +190,10 @@ class TestTrackGlobalMovements(unittest.TestCase):
             if element_index in ground_truth_indices:
                 ground_truth[element.id_in_frame] = mesh_two.elements[ground_truth_indices[element_index]].id_in_frame
          
-        print 'call tracker'
+        print('call tracker')
         tracked_ids = tracking.track(mesh_one, mesh_two)
 #         tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
-        print 'tracker returned'
+        print('tracker returned')
   
         mesh_one.plot(path.join(dirname(__file__),'output', 'translation_mesh_two_before.pdf'), color_by_global_id = True, 
                       total_number_of_global_ids = len(tracked_ids) )
@@ -403,10 +403,10 @@ class TestTrackGlobalMovements(unittest.TestCase):
                 ground_truth[element.id_in_frame] = mesh_two.elements[ground_truth_indices[element_index]].id_in_frame
         
  
-        print 'call tracker'
+        print('call tracker')
 #         tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
         tracked_ids = tracking.track(mesh_one, mesh_two)
-        print 'tracker returned'
+        print('tracker returned')
   
         mesh_one.plot(path.join(dirname(__file__),'output','special_translation_mesh_six_before.pdf'),
                       color_by_global_id = True, total_number_of_global_ids = len(tracked_ids))
@@ -474,10 +474,10 @@ class TestTrackGlobalMovements(unittest.TestCase):
                 ground_truth[element.id_in_frame] = mesh_two.elements[ground_truth_indices[element_index]].id_in_frame
         
  
-        print 'call tracker'
+        print('call tracker')
 #         tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
         tracked_ids = tracking.track(mesh_one, mesh_two)
-        print 'tracker returned'
+        print('tracker returned')
   
         mesh_one.plot(path.join(dirname(__file__),'output','special_translation_mesh_seven_before.pdf'),
                       color_by_global_id = True, total_number_of_global_ids = len(tracked_ids))
@@ -563,10 +563,10 @@ class TestTrackGlobalMovements(unittest.TestCase):
                 ground_truth[element.id_in_frame] = mesh_two.elements[ground_truth_indices[element_index]].id_in_frame
         
  
-        print 'call tracker'
+        print('call tracker')
 #         tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
         tracked_ids = tracking.track(mesh_one, mesh_two)
-        print 'tracker returned'
+        print('tracker returned')
   
         mesh_one.plot(path.join(dirname(__file__),'output','special_translation_mesh_ten_before.pdf'),
                       color_by_global_id = True, total_number_of_global_ids = len(tracked_ids))
@@ -650,9 +650,9 @@ class TestTrackGlobalMovements(unittest.TestCase):
                 ground_truth[element.id_in_frame] = mesh_two.elements[ground_truth_indices[element_index]].id_in_frame
         
  
-        print 'call tracker'
+        print('call tracker')
         tracked_ids = tracking.track(mesh_one, mesh_two)
-        print 'tracker returned'
+        print('tracker returned')
   
         mesh_one.plot(path.join(dirname(__file__),'output','special_translation_mesh_eleven_before.pdf'),
                       color_by_global_id = True, total_number_of_global_ids = len(tracked_ids))
@@ -736,9 +736,9 @@ class TestTrackGlobalMovements(unittest.TestCase):
                 ground_truth[element.id_in_frame] = mesh_two.elements[ground_truth_indices[element_index]].id_in_frame
         
  
-        print 'call tracker'
+        print('call tracker')
         tracked_ids = tracking.track(mesh_one, mesh_two)
-        print 'tracker returned'
+        print('tracker returned')
   
         mesh_one.plot(path.join(dirname(__file__),'output','special_translation_mesh_twelve_before.pdf'),
                       color_by_global_id = True, total_number_of_global_ids = len(tracked_ids))
@@ -822,10 +822,10 @@ class TestTrackGlobalMovements(unittest.TestCase):
                 ground_truth[element.id_in_frame] = mesh_two.elements[ground_truth_indices[element_index]].id_in_frame
         
  
-        print 'call tracker'
+        print('call tracker')
 #         tracked_ids = tracking.find_maximum_common_subgraph(mesh_one, mesh_two)
         tracked_ids = tracking.track(mesh_one, mesh_two)
-        print 'tracker returned'
+        print('tracker returned')
   
         mesh_one.plot(path.join(dirname(__file__),'output','special_translation_mesh_thirteen_before.pdf'),
                       color_by_global_id = True, total_number_of_global_ids = len(tracked_ids))
@@ -885,5 +885,5 @@ class TestTrackGlobalMovements(unittest.TestCase):
     @attr(level = 'weekly')
     def test_track_translation_multiple_times(self):
         for n in range(100):
-            print 'translation run ' + str(n)
+            print('translation run ' + str(n))
             self.xest_translation()

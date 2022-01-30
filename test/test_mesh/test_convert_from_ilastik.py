@@ -26,7 +26,7 @@ class TestConversion(unittest.TestCase):
                                   '*ion.tif' ) )
         
         for filename in list_of_files:
-            print 'copy file ' + filename
+            print('copy file ' + filename)
             shutil.copy(filename, os.path.join(dirname(__file__),'data','ilastik_data') )
 
     def test_convert_from_ilastik_runs(self):
@@ -138,7 +138,7 @@ class TestConversion(unittest.TestCase):
             os.mkdir(output_dir)
         
         for mesh_counter, mesh_instance in enumerate( mesh_sequence ):
-            print mesh_counter
+            print(mesh_counter)
             name_of_real_image = real_sequence[mesh_counter]
             mesh_instance.plot_with_data( path.join(output_dir, str(mesh_counter) + '.pdf' ), 
                                           name_of_real_image )

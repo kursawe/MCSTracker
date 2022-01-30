@@ -693,7 +693,7 @@ class TestTrackT1Swap(unittest.TestCase):
         second_mesh.plot(path.join(dirname(__file__),'output','multiple_t1_example_5_after.pdf'),
                         color_by_global_id = True, total_number_of_global_ids = first_mesh.get_num_elements())
          
-        print 'evaluate tracking'
+        print('evaluate tracking')
         tracking_success, number_tracked_cells = tracking.evaluate_tracking(first_mesh, 
                                                                    second_mesh, 
                                                                    ground_truth)
@@ -722,7 +722,7 @@ class TestTrackT1Swap(unittest.TestCase):
         second_mesh.plot(path.join(dirname(__file__),'output','multiple_t1_example_6_after.pdf'),
                         color_by_global_id = True, total_number_of_global_ids = first_mesh.get_num_elements())
          
-        print 'evaluate tracking'
+        print('evaluate tracking')
         tracking_success, number_tracked_cells = tracking.evaluate_tracking(first_mesh, 
                                                                    second_mesh, 
                                                                    ground_truth)
@@ -750,7 +750,7 @@ class TestTrackT1Swap(unittest.TestCase):
         second_mesh.plot(path.join(dirname(__file__),'output','multiple_t1_example_7_after.pdf'),
                         color_by_global_id = True, total_number_of_global_ids = first_mesh.get_num_elements())
          
-        print 'evaluate tracking'
+        print('evaluate tracking')
         tracking_success, number_tracked_cells = tracking.evaluate_tracking(first_mesh, 
                                                                    second_mesh, 
                                                                    ground_truth)
@@ -764,11 +764,11 @@ class TestTrackT1Swap(unittest.TestCase):
            We only test that the tracking algorithm actually finishes."""
            
         for n in range(150):
-            print 'multiple t1 swap run ' + str(n)
+            print('multiple t1 swap run ' + str(n))
             make_t1_analysis.test_success(20, output = True )
         
     @attr(level = 'weekly')
     def test_track_t1_swap_multiple_times(self):
         for n in range(100):
-            print 't1 swap run ' + str(n)
+            print('t1 swap run ' + str(n))
             self.xest_track_t1_swap()  

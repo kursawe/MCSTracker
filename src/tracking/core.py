@@ -11,7 +11,8 @@ from mesh.in_out import _natural_keys
 import glob
 import copy
 import warnings
-from networkx.algorithms.components.connected import connected_component_subgraphs
+#from networkx.algorithms.components.connected import connected_component_subgraphs
+# # # # # # # # # from networkx import connected_component_subgraphs
 
 def track(mesh_one, mesh_two):
     """Find a mapping between the cell ids in both frames and assigns the global ids accordingly.
@@ -80,7 +81,7 @@ def track_and_write_sequence(input_path, output_path, start_number = 1, number_m
             try:
                 track(previous_mesh, corresponding_mesh)
             except FirstIndexException:
-                print "Could not find first index in tracking step " + str(counter)
+                print("Could not find first index in tracking step " + str(counter))
             step_sequence.append([previous_mesh, corresponding_mesh])
     
     # give global ids to the first mesh
@@ -1025,7 +1026,9 @@ class PostProcessor():
 
         network_one = self.mesh_one.generate_network_of_identified_elements()
 
-        connected_components_in_network_one = list( nx.connected_component_subgraphs(network_one) )
+        [network_one.subgraph(component) for component in connected_components(network_one)]
+        connected_components_in_network_one = [network_one.subgraph(component) for component in connected_components(network_one)]
+        #connected_components_in_network_one = list( nx.connected_component_subgraphs(network_one) )
         
 #         import pdb; pdb.set_trace()
         for connected_component in connected_components_in_network_one:
@@ -1364,7 +1367,7 @@ class PostProcessor():
 #         self.preliminary_mappings = copy.copy(self.largest_mappings[0])
         # first, identify any cells that are in network two but are not mapped
         network_two = self.mesh_two.generate_network_of_unidentified_elements(self.preliminary_mappings.values())
-        connected_components_in_network_two = list( nx.connected_component_subgraphs(network_two) )
+        connected_components_in_network_two =  [network_two.subgraph(component) for component in connected_components(network_two)]
         for connected_component in connected_components_in_network_two:
             #check whether component is at mesh boundary:
             component_is_on_boundary = False
@@ -1408,7 +1411,7 @@ class PostProcessor():
             if not this_element.check_if_on_boundary():
                 adjacent_elements += this_element.get_ids_of_adjacent_elements() 
             else:
-                print 'element to remove is on boundary'
+                print('element to remove is on boundary')
         
         unique_adjacent_elements = np.unique(np.array(adjacent_elements))
         

@@ -39,7 +39,7 @@ class Mesh():
         mesh : the mesh
         """
 
-        self.nodes = nodes
+        self.nodes = list(nodes)
         """A list with all the nodes"""
         
         self.elements = elements
@@ -404,8 +404,8 @@ class Mesh():
         
         for element in self.elements:
             if network.has_node(element.id_in_frame):
-                network.node[element.id_in_frame]['position'] = element.calculate_centroid()
-                network.node[element.id_in_frame]['num_neighbours'] = element.get_num_nodes()
+                network.nodes[element.id_in_frame]['position'] = element.calculate_centroid()
+                network.nodes[element.id_in_frame]['num_neighbours'] = element.get_num_nodes()
         
         return network
     
@@ -1018,7 +1018,10 @@ class Mesh():
         all_frame_ids = []
 
         for element in self.elements:
-            all_frame_ids.append(element.id_in_frame)
+            if element.id_in_frame is not None:
+                all_frame_ids.append(element.id_in_frame)
+            else:
+                return None
         
         max_element_id = np.max(np.array( all_frame_ids ))
 
@@ -2096,6 +2099,6 @@ def _get_distinct_colors(number_of_colors):
         a list where each entry is a different color
     """
     HSV_tuples = [(color_index*1.0/number_of_colors, 1.0, 0.7) for color_index in range(number_of_colors)]
-    RGB_tuples = map(lambda color: colorsys.hsv_to_rgb(*color), HSV_tuples)
+    RGB_tuples = list(map(lambda color: colorsys.hsv_to_rgb(*color), HSV_tuples))
 
     return RGB_tuples

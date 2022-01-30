@@ -261,9 +261,9 @@ class TestTracking(unittest.TestCase):
         sys.setrecursionlimit(40000)
         mesh_one = mesh.creation.generate_random_tesselation(30,30)
         
-        print 'start to copy'
+        print('start to copy')
         mesh_two = copy.deepcopy(mesh_one)
-        print 'stop to copy'
+        print('stop to copy')
          
         mesh_one.assign_frame_ids_in_order()
         mesh_two.assign_frame_ids_randomly()
@@ -292,5 +292,5 @@ class TestTracking(unittest.TestCase):
     @attr(level = 'weekly')
     def test_track_permutation_multiple_times(self):
         for n in range(100):
-            print 'permutation run ' + str(n)
+            print('permutation run ' + str(n))
             self.xest_track_9_by_9_random_mesh()

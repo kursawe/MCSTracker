@@ -141,7 +141,8 @@ def create_seeds_from_image( input_image ):
     this_image_binary = np.array( (input_image == 2), dtype = 'uint8' )
     
     # distinguish cv2 versions
-    if (float(cv2.__version__.split(".")[0]) < 3.0):
+    opencvversion = float(cv2.__version__.split(".")[0])
+    if ( opencvversion< 3.0 or opencvversion>= 4.0):
         these_contours, hirarchy = cv2.findContours(this_image_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     else:
         _,these_contours, hirarchy = cv2.findContours(this_image_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -207,7 +208,7 @@ def read_sequence_from_data(folder_name, start_number = 1, number_meshes = None)
 
     mesh_sequence = []
     for filename in list_of_files:
-        print 'reading' + str(filename)
+        print('reading' + str(filename))
         mesh_sequence.append( read_frame_from_data(filename) )
         
     return mesh_sequence   
@@ -307,7 +308,8 @@ def get_contour_list(this_image):
         cell_mask = ( this_image == cell_id )
         # Transform to 8 bit for openCV
         cell_mask = np.uint8( cell_mask )
-        if (float(cv2.__version__.split(".")[0]) < 3.0):
+        opencvversion = float(cv2.__version__.split(".")[0])
+        if (opencvversion < 3.0 or opencvversion >= 4.0):
             contour_list[cell_number],_ = cv2.findContours( cell_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE )    
         else:
             _,contour_list[cell_number],_ = cv2.findContours( cell_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE )    
