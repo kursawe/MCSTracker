@@ -8,6 +8,7 @@ import sys
 import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+sys.path.append(os.path.dirname(__file__))
 
 import unittest
 import mesh
@@ -761,7 +762,7 @@ class TestTrackT1Swap(unittest.TestCase):
                                                                    ground_truth)
  
     @attr(level = 'weekly')
-    def test_track_multiple_t1_swaps(self):
+    def xest_track_multiple_t1_swaps(self):
 
         sys.setrecursionlimit(40000)
  
