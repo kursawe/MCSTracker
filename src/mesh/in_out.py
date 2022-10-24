@@ -208,7 +208,7 @@ def read_sequence_from_data(folder_name, start_number = 1, number_meshes = None)
 
     mesh_sequence = []
     for filename in list_of_files:
-        print('reading' + str(filename))
+        print("reading" + str(filename))
         mesh_sequence.append( read_frame_from_data(filename) )
         
     return mesh_sequence   
@@ -504,7 +504,7 @@ def extract_vertex_data(this_image, contour_list, cell_ids):
     
     no_of_cells = len(cell_ids)
     # We overestimate the size of this array by approximately a factor of 2
-    number_of_vertices_estimate = no_of_cells*7/2
+    number_of_vertices_estimate = int(no_of_cells*7/2)
     vertex_array = np.zeros( ( number_of_vertices_estimate, 2 ), dtype=np.int64 )
     no_of_vertices = 0
     no_of_cells_per_vertex = np.zeros(number_of_vertices_estimate, dtype=np.int64)
