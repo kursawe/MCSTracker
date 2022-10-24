@@ -1,6 +1,11 @@
 # Copyright 2016 Jochen Kursawe. See the LICENSE file at the top-level directory 
 # of this distribution and at https://github.com/kursawe/MCSTracker/blob/master/LICENSE.
 
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+
 import mesh
 import tracking
 import copy
@@ -17,8 +22,8 @@ def make_multiple_mcs():
     counter = 0
     example_not_found = True
     while example_not_found:
-        print 'running example number'
-        print counter
+        print('running example number')
+        print(counter)
         example_not_found = run_single_repeat()
         counter += 1
        

@@ -3,6 +3,12 @@
 
 """This tests our first tracking example
 """
+
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+
 import unittest
 import mesh
 import tracking
@@ -681,5 +687,5 @@ class TestTrackDeath(unittest.TestCase):
     @attr(level = 'weekly')
     def test_track_death_multiple_times(self):
         for n in range(100):
-            print 'death run ' + str(n)
+            print('death run ' + str(n))
             self.xest_track_cell_death()

@@ -5,6 +5,11 @@
 except that here we randomly remove cells rather than randomly swap edges.
 This work is not finished yet"""
 
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+
 import mesh
 import tracking
 import copy
@@ -86,8 +91,8 @@ def get_success_ratio(death_percentage, repetitions_number):
     results = [pool.apply_async(try_test_success, args=(x,)) 
                for x in arguments]
 
-    print 'started pool for death swap percentage'
-    print death_percentage
+    print('started pool for death swap percentage')
+    print(death_percentage)
 
     results_list = []
     for result in results:
@@ -135,7 +140,7 @@ def test_success(death_percentage, output = False):
        average number of cells that were tracked correctly
     """
     
-    print 'making meshes'
+    print('making meshes')
     first_mesh = mesh.creation.generate_random_tesselation(20,20)
     second_mesh = copy.deepcopy(first_mesh)
     
@@ -143,14 +148,14 @@ def test_success(death_percentage, output = False):
     second_mesh.assign_frame_ids_randomly()
 
     # build ground truth for testing the mapping
-    print 'making ground truth'
+    print('making ground truth')
     ground_truth = {}
     for element_index, element in enumerate(first_mesh.elements):
         ground_truth[element.id_in_frame] = second_mesh.elements[element_index].id_in_frame
 
     total_number_elements = first_mesh.get_num_elements()
     cells_to_kill = int( 0.01 * death_percentage * total_number_elements)
-    print 'killing cells'
+    print('killing cells')
     kill_cells( second_mesh, cells_to_kill, ground_truth )
     
     if output:
@@ -173,7 +178,7 @@ def test_success(death_percentage, output = False):
         second_mesh.plot(path.join(dirname(__file__),'output','multiple_death_after.pdf'),
                         color_by_global_id = True, total_number_of_global_ids = first_mesh.get_num_elements())
     
-    print 'evaluate tracking'
+    print('evaluate tracking')
     tracking_success, number_tracked_cells, number_incorrectly_tracked_cells = tracking.evaluate_tracking(first_mesh, 
                                                                                                           second_mesh, 
                                                                                                           ground_truth)

@@ -3,6 +3,12 @@
 
 """This tests our first tracking example
 """
+
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+
 import unittest
 import mesh
 import tracking
@@ -234,8 +240,8 @@ class TestTrackDivision(unittest.TestCase):
             element_one = mesh_one.get_element_with_global_id(global_id)
             element_two = mesh_two.get_element_with_global_id(global_id)
             if (ground_truth[element_one.id_in_frame] != element_two.id_in_frame ):
-                print element_one.calculate_centroid()
-                print element_two.calculate_centroid()
+                print(element_one.calculate_centroid())
+                print(element_two.calculate_centroid())
             
         plt.close('all')
         
@@ -308,8 +314,8 @@ class TestTrackDivision(unittest.TestCase):
             element_two = mesh_two.get_element_with_global_id(global_id)
             self.assertEqual(ground_truth[element_one.id_in_frame] , element_two.id_in_frame )
             if (ground_truth[element_one.id_in_frame] != element_two.id_in_frame ):
-                print element_one.calculate_centroid()
-                print element_two.calculate_centroid()
+                print(element_one.calculate_centroid())
+                print(element_two.calculate_centroid())
             
         plt.close('all')
 
@@ -382,9 +388,9 @@ class TestTrackDivision(unittest.TestCase):
             element_two = mesh_two.get_element_with_global_id(global_id)
             self.assertEqual( ground_truth[element_one.id_in_frame] , element_two.id_in_frame )
             if ( ground_truth[element_one.id_in_frame] != element_two.id_in_frame ):
-                print 'hello?'
-                print element_one.calculate_centroid()
-                print element_two.calculate_centroid()
+                print('hello?')
+                print(element_one.calculate_centroid())
+                print(element_two.calculate_centroid())
             
         plt.close('all')
 
@@ -879,5 +885,5 @@ class TestTrackDivision(unittest.TestCase):
     @attr(level = 'weekly')
     def test_track_division_multiple_times(self):
         for n in range(100):
-            print 'division run ' + str(n)
+            print('division run ' + str(n))
             self.xest_track_division()

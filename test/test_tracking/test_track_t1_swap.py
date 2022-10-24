@@ -3,11 +3,16 @@
 
 """This tests our first tracking example
 """
+
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+
 import unittest
 import mesh
 import tracking
 import copy
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import make_t1_analysis

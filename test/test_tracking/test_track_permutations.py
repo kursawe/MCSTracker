@@ -3,15 +3,18 @@
 
 """This tests our first tracking example
 """
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+
 import unittest
 import mesh
 import tracking
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
-import os
 import copy
-import sys
 from os import path
 from os.path import dirname
 from nose.plugins.attrib import attr

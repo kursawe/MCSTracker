@@ -1,6 +1,11 @@
 # Copyright 2016 Jochen Kursawe. See the LICENSE file at the top-level directory 
 # of this distribution and at https://github.com/kursawe/MCSTracker/blob/master/LICENSE.
 
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+
 import unittest
 import mesh
 import tracking
@@ -82,8 +87,8 @@ def get_single_mcs_time(size):
     subgraph_finder = tracking.LocalisedSubgraphFinder(mesh_one, mesh_two)
     subgraph_finder.turn_timing_on()
     subgraph_finder.find_maximum_common_subgraph()
-    print 'finished subraph of size'
-    print size
+    print('finished subraph of size')
+    print(size)
     
     return subgraph_finder.total_execution_time
 
