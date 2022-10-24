@@ -29,7 +29,7 @@ def load(filename):
     
     mesh : mesh contained in file
     """
-    file_to_read = open(filename, 'r')
+    file_to_read = open(filename, 'rb')
     mesh_to_read = pickle.load( file_to_read )
     file_to_read.close()
     
@@ -195,7 +195,7 @@ def read_sequence_from_data(folder_name, start_number = 1, number_meshes = None)
 
     Returns
     -------
-    
+   
     mesh_sequence : list of Mesh instances
         elements of the list are instances of Mesh
     """
@@ -371,35 +371,39 @@ def find_triple_junctions_at_pixel(this_image, x_index, y_index):
 
         triple_junctions.append( np.array([x_index, y_index -1]) )
 
-    if ( central_value != values_in_neighbourhood[1,0] and central_value != values_in_neighbourhood[2,0] and
-         values_in_neighbourhood[1,0] != values_in_neighbourhood [2,0] ): # bottom left
+    if values_in_neighbourhood.shape[0] == 3 and values_in_neighbourhood.shape[1] ==3:
+        if ( central_value != values_in_neighbourhood[1,0] and central_value != values_in_neighbourhood[2,0] and
+             values_in_neighbourhood[1,0] != values_in_neighbourhood [2,0] ): # bottom left
 
-        triple_junctions.append( np.array([x_index +1, y_index -1]) )
+            triple_junctions.append( np.array([x_index +1, y_index -1]) )
 
-    if ( central_value != values_in_neighbourhood[2,0] and central_value != values_in_neighbourhood[2,1] and
-         values_in_neighbourhood[2,0] != values_in_neighbourhood [2,1] ): # bottom left
+    if values_in_neighbourhood.shape[0] == 3:
+        if ( central_value != values_in_neighbourhood[2,0] and central_value != values_in_neighbourhood[2,1] and
+             values_in_neighbourhood[2,0] != values_in_neighbourhood [2,1] ): # bottom left
 
-        triple_junctions.append( np.array([x_index +1, y_index -1]) )
+            triple_junctions.append( np.array([x_index +1, y_index -1]) )
 
-    if ( central_value != values_in_neighbourhood[2,1] and central_value != values_in_neighbourhood[2,2] and
-         values_in_neighbourhood[2,1] != values_in_neighbourhood [2,2] ): # bottom right
+        if values_in_neighbourhood.shape[1] == 3:
+            if ( central_value != values_in_neighbourhood[2,1] and central_value != values_in_neighbourhood[2,2] and
+                 values_in_neighbourhood[2,1] != values_in_neighbourhood [2,2] ): # bottom right
 
-        triple_junctions.append( np.array([x_index +1, y_index]) )
+                triple_junctions.append( np.array([x_index +1, y_index]) )
 
-    if ( central_value != values_in_neighbourhood[2,2] and central_value != values_in_neighbourhood[1,2] and
-         values_in_neighbourhood[2,2] != values_in_neighbourhood [1,2] ): # bottom right
+            if ( central_value != values_in_neighbourhood[2,2] and central_value != values_in_neighbourhood[1,2] and
+                 values_in_neighbourhood[2,2] != values_in_neighbourhood [1,2] ): # bottom right
 
-        triple_junctions.append( np.array([x_index +1, y_index]) )
+                triple_junctions.append( np.array([x_index +1, y_index]) )
 
-    if ( central_value != values_in_neighbourhood[0,1] and central_value != values_in_neighbourhood[0,2] and
-         values_in_neighbourhood[0,1] != values_in_neighbourhood [0,2]): # top right
+    if values_in_neighbourhood.shape[1] == 3:
+        if ( central_value != values_in_neighbourhood[0,1] and central_value != values_in_neighbourhood[0,2] and
+             values_in_neighbourhood[0,1] != values_in_neighbourhood [0,2]): # top right
 
-        triple_junctions.append( np.array([x_index, y_index]) )
+            triple_junctions.append( np.array([x_index, y_index]) )
 
-    if ( central_value != values_in_neighbourhood[0,2] and central_value != values_in_neighbourhood[1,2] and
-         values_in_neighbourhood[0,2] != values_in_neighbourhood [1,2]): # top right
+        if ( central_value != values_in_neighbourhood[0,2] and central_value != values_in_neighbourhood[1,2] and
+             values_in_neighbourhood[0,2] != values_in_neighbourhood [1,2]): # top right
 
-        triple_junctions.append( np.array([x_index, y_index]) )
+            triple_junctions.append( np.array([x_index, y_index]) )
 
     ### ORDERING corners here
         

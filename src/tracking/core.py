@@ -1026,11 +1026,8 @@ class PostProcessor():
 
         network_one = self.mesh_one.generate_network_of_identified_elements()
 
-        [network_one.subgraph(component) for component in connected_components(network_one)]
-        connected_components_in_network_one = [network_one.subgraph(component) for component in connected_components(network_one)]
-        #connected_components_in_network_one = list( nx.connected_component_subgraphs(network_one) )
+        connected_components_in_network_one = nx.connected_components(network_one) 
         
-#         import pdb; pdb.set_trace()
         for connected_component in connected_components_in_network_one:
             if len(connected_component) < 10:
                 for frame_id in connected_component:
@@ -1367,7 +1364,8 @@ class PostProcessor():
 #         self.preliminary_mappings = copy.copy(self.largest_mappings[0])
         # first, identify any cells that are in network two but are not mapped
         network_two = self.mesh_two.generate_network_of_unidentified_elements(self.preliminary_mappings.values())
-        connected_components_in_network_two =  [network_two.subgraph(component) for component in connected_components(network_two)]
+        connected_components_in_network_two = nx.connected_components(network_two) 
+
         for connected_component in connected_components_in_network_two:
             #check whether component is at mesh boundary:
             component_is_on_boundary = False

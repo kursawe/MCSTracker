@@ -58,7 +58,7 @@ class KrissinelMaximumCommonSubgraphFinder:
         self.height_one = mesh_one.calculate_height()
         """height of the first mesh"""
         
-        self.min_subgraph_size = int( minimum_size*len( self.network_one.nodes() ) )
+        self.min_subgraph_size = int( minimum_size*len(list( self.network_one )) )
         """Minimum number of matches that we expect for the maximum common subgraph"""
 
         self.max_found_subgraph_size = 0
@@ -89,8 +89,8 @@ class KrissinelMaximumCommonSubgraphFinder:
         self.total_execution_time = None
         """Total time of the search"""
         
-        self.network_one_node_iterator = self.network_one.nodes()
-        self.network_two_node_iterator = self.network_two.nodes()
+        self.network_one_node_iterator = list(self.network_one)
+        self.network_two_node_iterator = list(self.network_two)
         
     def turn_timing_on(self):
         """turn on the collection of timing statistics"""
@@ -125,12 +125,12 @@ class KrissinelMaximumCommonSubgraphFinder:
         cutoff_distance = self.determine_cutoff_distance()
 
         # loop over all nodes in network one
-        for node_one in self.network_one.nodes():
+        for node_one in list(self.network_one):
 
             matches_for_node_one = []
 
             # identify which nodes in network two could be corresponding
-            for node_two_index, node_two in enumerate(self.network_two.nodes()):
+            for node_two_index, node_two in enumerate(list(self.network_two)):
                 node_two_is_mappable_to_node_one = ( np.linalg.norm(self.network_one.nodes[node_one]['position'] -
                                                                     self.network_two.nodes[node_two]['position'] ) < cutoff_distance 
                                                      and self.network_one.nodes[node_one]['num_neighbours'] == 
@@ -141,7 +141,7 @@ class KrissinelMaximumCommonSubgraphFinder:
                     matches_for_node_one.append(node_two_index)
             
             # sort the matches by their distance to the original node
-            matches_for_node_one.sort(key = lambda x: np.linalg.norm(self.network_two.nodes[self.network_two.nodes()[x]]['position']-
+            matches_for_node_one.sort(key = lambda x: np.linalg.norm(self.network_two.nodes[list(self.network_two)[x]]['position']-
                                                                      self.network_one.nodes[node_one]['position']))
 
             # put what we learned in the lists
@@ -511,11 +511,11 @@ class ConnectedMaximumCommonSubgraphFinder(KrissinelMaximumCommonSubgraphFinder)
         """
         KrissinelMaximumCommonSubgraphFinder.__init__( self, mesh_one, mesh_two, minimum_size )
 
-        self.initial_tracking_state.not_blacklisted_vector = np.ones(len(self.network_one.nodes()), dtype = 'bool')
+        self.initial_tracking_state.not_blacklisted_vector = np.ones(len(list(self.network_one)), dtype = 'bool')
         
         # create a lookup dict for indices in network one.
         network_one_node_dict = {}
-        for counter, node in enumerate(self.network_one.nodes()):
+        for counter, node in enumerate(list(self.network_one)):
             network_one_node_dict[counter] = node
         self.network_one_index_lookup = {node: index for index, node in network_one_node_dict.items()}
         """A dictionary to know which index belongs to a node in network_one.nodes()"""
@@ -642,7 +642,7 @@ class ConnectedMaximumCommonSubgraphFinder(KrissinelMaximumCommonSubgraphFinder)
         
         new_tracking_state = KrissinelMaximumCommonSubgraphFinder.create_extended_tracking_state(self, tracking_state, vertex_one, vertex_two)
 
-        vertices_that_are_adjacent_to_vertex_one = self.network_one.neighbors(self.network_one.nodes()[vertex_one])
+        vertices_that_are_adjacent_to_vertex_one = list(self.network_one.neighbors(list(self.network_one)[vertex_one]))
         indices_of_vertices_that_are_adjacent_to_vertex_one = np.array( [ self.network_one_index_lookup[vertex] 
                                                                           for vertex in vertices_that_are_adjacent_to_vertex_one])
         
@@ -721,19 +721,19 @@ class ReducedBacktrackingSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         
             for image in possible_images:
                 # only consider this image if it is not a safe bet
-                if self.network_two.nodes()[image] not in self.safe_bets.values():
+                if self.network_two_node_iterator[image] not in self.safe_bets.values():
                     # this method will also update the vertex_matching_matrix in the tracking state
                     new_tracking_state = self.create_extended_tracking_state(tracking_state, current_vertex, image)
                     self.backtrack(new_tracking_state)
                 # or if it is, than the current vertex better be as well
-                elif self.network_one.nodes()[current_vertex] in self.safe_bets.keys():
+                elif self.network_one_node_iterator[current_vertex] in self.safe_bets.keys():
                     new_tracking_state = self.create_extended_tracking_state(tracking_state, current_vertex, image)
                     self.backtrack(new_tracking_state)
 
                 if self.check_is_safe_bet( current_vertex ):                    
                     break
         
-            if self.network_one.nodes()[current_vertex] not in self.safe_bets:
+            if self.network_one_node_iterator[current_vertex] not in self.safe_bets:
                 # take the current vertex out of the possible extensions for the current tracking state
                 tracking_state.vertex_matching_matrix[current_vertex,:] = 0
                 tracking_state.counts_of_mappable_vertices[current_vertex] = 0
@@ -769,13 +769,13 @@ class ReducedBacktrackingSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             is_safe_bet : bool
                 Whether this node is a safe bet.
         """
-        this_frame_id = self.network_one.nodes()[node_index]
+        this_frame_id = self.network_one_node_iterator[node_index]
         if this_frame_id in self.safe_bets:
             return True
         else:
             if self.largest_mappings != []:
                 if this_frame_id in self.largest_mappings[0] and this_frame_id in self.preliminary_safe_bets:
-                    adjacent_vertices = self.network_one.neighbors(self.network_one.nodes()[node_index])
+                    adjacent_vertices = self.network_one.neighbors(self.network_one_node_iterator[node_index])
                     two_adjacent_vertices_are_safe_bet = False
                     no_of_adjacent_safe_bets = 0
                     for vertex in adjacent_vertices:
@@ -817,7 +817,7 @@ class ReducedBacktrackingSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         KrissinelMaximumCommonSubgraphFinder.get_mappable_vertices()
         """
         
-        if self.network_one.nodes()[vertex_index] in self.safe_bets:
+        if self.network_one_node_iterator[vertex_index] in self.safe_bets:
             mappable_vertices = [ self.network_two_index_lookup[ self.safe_bets[vertex_index] ] ]
         else:
             mappable_vertices = KrissinelMaximumCommonSubgraphFinder.get_mappable_vertices(self, tracking_state, vertex_index)
@@ -907,7 +907,7 @@ class ReducedBacktrackingSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         new_tracking_state = ConnectedMaximumCommonSubgraphFinder.create_extended_tracking_state(self, tracking_state, vertex_one, vertex_two)
 
         # The mapping of vertex one might have just made one of it's neighbours a safe bet
-        neighbour_ids_of_vertex_one = self.network_one.neighbors(self.network_one.nodes()[vertex_one])
+        neighbour_ids_of_vertex_one = self.network_one.neighbors(self.network_one_node_iterator[vertex_one])
         
         for neighbour_id in neighbour_ids_of_vertex_one:
             # Proceed if this index is not yet a safe bet but has already been mapped.
@@ -1132,7 +1132,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         for index in sorted_indices_of_vertices_count:
 #             if ( ( self.initial_tracking_state.counts_of_mappable_vertices[index] > 0 )
             if ( ( tracking_state.counts_of_mappable_vertices[index] > 0 )
-                 and ( self.network_one.degree( self.network_one.nodes()[index] ) > 3 ) ):
+                 and ( self.network_one.degree( list(self.network_one)[index] ) > 3 ) ):
                 ordered_vertices.append( index )
 
         return ordered_vertices
@@ -1167,13 +1167,13 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             The number of vertices in network_one that are not removed in localised_tracking_state (including
             vertices that are not removed and are not mappable).      
         """
-        vertex_id = self.network_one.nodes()[vertex_one]
+        vertex_id = list(self.network_one)[vertex_one]
         second_class_neighbour_ids = nx.single_source_shortest_path_length(self.network_one, vertex_id, 
                                                                            cutoff=cutoff_distance ).keys()
         second_class_neighbour_indices = [ self.network_one_index_lookup[ frame_id ] for
                                            frame_id in second_class_neighbour_ids]
 
-        vertices_that_are_adjacent_to_vertex_one = self.network_one.neighbors(self.network_one.nodes()[vertex_one])
+        vertices_that_are_adjacent_to_vertex_one = list(self.network_one.neighbors(vertex_id))
         indices_of_vertices_that_are_adjacent_to_vertex_one = np.array( [ self.network_one_index_lookup[vertex] 
                                                                           for vertex in vertices_that_are_adjacent_to_vertex_one])
        
@@ -1186,7 +1186,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             list_of_still_mappable_vertices_in_old_state = np.nonzero( tracking_state.counts_of_mappable_vertices )[0]
             localised_tracking_state = TrackingState()
             localised_tracking_state.id_map = tracking_state.id_map.copy()
-            localised_tracking_state.id_map[self.network_one.nodes()[vertex_one]] = self.network_two.nodes()[vertex_two]
+            localised_tracking_state.id_map[list(self.network_one)[vertex_one]] = list(self.network_two)[vertex_two]
             
             # Ok, here we start introducing a reduced structure
             localised_tracking_state.vertex_matching_matrix = np.zeros( (len(second_class_neighbour_indices), 
@@ -1577,7 +1577,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         indices_of_vertices_that_are_adjacent_to_vertex_one = np.array( [ self.network_one_index_lookup[vertex] 
                                                                           for vertex in vertices_that_are_adjacent_to_vertex_one])
  
-        vertices_that_are_adjacent_to_vertex_two = self.network_two.neighbors(self.network_two_node_iterator[vertex_two])
+        vertices_that_are_adjacent_to_vertex_two = list(self.network_two.neighbors(self.network_two_node_iterator[vertex_two]))
         vertices_that_are_adjacent_to_vertex_two.append(self.network_two_node_iterator[vertex_two])
         indices_of_vertices_that_are_adjacent_to_vertex_two = np.array( [ self.network_two_index_lookup[vertex] 
                                                                           for vertex in vertices_that_are_adjacent_to_vertex_two])
@@ -1642,7 +1642,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             frame id of the image that is found. None if the vertex is not mapped equally in all largest mappings.
         """ 
 
-        vertex_id = self.network_one.nodes()[vertex]
+        vertex_id = list(self.network_one)[vertex]
         vertex_is_mapped_equally_in_all_largest_mappings = True
         image = None
         if vertex_id in self.largest_mappings[0]:
@@ -1696,7 +1696,7 @@ class SlowMaximumCommonSubgraphFinder:
         self.network_two = mesh_two.generate_network()
         """Network of first mesh"""
 
-        self.nodes_one = set(self.network_one.nodes())
+        self.nodes_one = set(list(self.network_one))
         """all nodes in first, will get repeatedly reduced and increased again during
         the search"""
         

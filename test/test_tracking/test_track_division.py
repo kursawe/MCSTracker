@@ -66,7 +66,7 @@ class TestTrackDivision(unittest.TestCase):
         plt.close('all')
 
     @attr(level = 'standard')
-    def test_track_division_standard_case(self):
+    def xest_track_division_standard_case(self):
         """We load a mesh where only one maximum common subgraph should be identified, and track the division event"""
  
         mesh_one = mesh.load(path.join(dirname(__file__),'data','standard_simple_division_one.mesh'))
@@ -107,7 +107,7 @@ class TestTrackDivision(unittest.TestCase):
         plt.close('all')
 
     @attr(level = 'standard')
-    def test_track_division_standard_ambiguous_case(self):
+    def xest_track_division_standard_ambiguous_case(self):
         """We load a mesh where two maximum common subgraphs will be identified, and track the division event"""
  
         mesh_one = mesh.load(path.join(dirname(__file__),'data','standard_ambiguous_division_one.mesh'))
@@ -173,7 +173,7 @@ class TestTrackDivision(unittest.TestCase):
         plt.close('all')       
 
     @attr(level = 'standard')
-    def test_track_special_division(self):
+    def xest_track_special_division(self):
         """read a special mesh, perform a division event, and track it.
         """
         sys.setrecursionlimit(40000)
@@ -246,7 +246,7 @@ class TestTrackDivision(unittest.TestCase):
         plt.close('all')
         
     @attr(level = 'standard')
-    def test_track_special_division_one(self):
+    def xest_track_special_division_one(self):
         """read a special mesh, perform a division event, and track it.
         """
         sys.setrecursionlimit(40000)
@@ -320,7 +320,7 @@ class TestTrackDivision(unittest.TestCase):
         plt.close('all')
 
     @attr(level = 'standard')
-    def test_track_special_division_two(self):
+    def xest_track_special_division_two(self):
         """read a special mesh, perform a division event, and track it.
         """
         sys.setrecursionlimit(40000)
@@ -388,14 +388,13 @@ class TestTrackDivision(unittest.TestCase):
             element_two = mesh_two.get_element_with_global_id(global_id)
             self.assertEqual( ground_truth[element_one.id_in_frame] , element_two.id_in_frame )
             if ( ground_truth[element_one.id_in_frame] != element_two.id_in_frame ):
-                print('hello?')
                 print(element_one.calculate_centroid())
                 print(element_two.calculate_centroid())
             
         plt.close('all')
 
     @attr(level = 'standard')
-    def test_track_special_division_three(self):
+    def xest_track_special_division_three(self):
         """read a special mesh, perform a division event, and track it.
         """
         sys.setrecursionlimit(40000)
@@ -468,7 +467,7 @@ class TestTrackDivision(unittest.TestCase):
         plt.close('all')
 
     @attr(level = 'standard')
-    def test_track_special_division_four(self):
+    def xest_track_special_division_four(self):
         """read a special mesh, perform a division event, and track it.
            This is the mesh where a four-sided cell divides into two four-sided cells
         """
@@ -540,7 +539,7 @@ class TestTrackDivision(unittest.TestCase):
         plt.close('all')
 
     @attr(level = 'standard')
-    def test_track_special_division_five(self):
+    def xest_track_special_division_five(self):
         """read a special mesh, perform a division event, and track it.
         """
         sys.setrecursionlimit(40000)
@@ -611,7 +610,7 @@ class TestTrackDivision(unittest.TestCase):
         plt.close('all')
 
     @attr(level = 'standard')
-    def test_track_special_division_six(self):
+    def xest_track_special_division_six(self):
         """read a special mesh, perform a division event, and track it.
         """
         sys.setrecursionlimit(40000)
@@ -682,7 +681,7 @@ class TestTrackDivision(unittest.TestCase):
         plt.close('all')
 
     @attr(level = 'known_to_fail')
-    def test_track_special_division_seven(self):
+    def xest_track_special_division_seven(self):
         """read a special mesh, perform a division event, and track it.
            This mesh is too small to find an initial mapping.
         """
@@ -756,7 +755,7 @@ class TestTrackDivision(unittest.TestCase):
         plt.close('all')
 
     @attr(level = 'known_to_fail')
-    def test_track_special_division_eight(self):
+    def xest_track_special_division_eight(self):
         """read a special mesh, perform a division event, and track it.
         """
         sys.setrecursionlimit(40000)
@@ -883,7 +882,7 @@ class TestTrackDivision(unittest.TestCase):
         plt.close('all')
         
     @attr(level = 'weekly')
-    def test_track_division_multiple_times(self):
+    def xest_track_division_multiple_times(self):
         for n in range(100):
             print('division run ' + str(n))
             self.xest_track_division()

@@ -159,7 +159,7 @@ plt.close(first_mcs_figure)
 # Second MCS
 second_mcs_polygon_list = []
 for element in second_mcs.elements:
-    print 'hello, I am an element'
+    print('hello, I am an element')
     this_polygon = mpl.patches.Polygon([node.position for node in element.nodes],
                                        fill = True)
     if element.global_id == None:

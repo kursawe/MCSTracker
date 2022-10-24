@@ -170,7 +170,7 @@ class Mesh():
 
         for element in self.elements:
             this_polygon = mpl.patches.Polygon([node.position for node in element.nodes],
-                                               fill = True)
+                                               fill = True, edgecolor  = 'black')
             if color_by_global_id == True:
 
                 if element.global_id == None:

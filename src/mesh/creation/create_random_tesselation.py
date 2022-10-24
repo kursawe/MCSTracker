@@ -4,9 +4,6 @@
 
 import numpy as np
 from ..core import *
-print('trying to import pyhull')
-from pyhull.voronoi import VoronoiTess # in maths type easy_install --user pyhull to make this work
-print('finished the import')
 import scipy.spatial
 
 def generate_random_tesselation(nx, ny, number_of_relaxation_steps = 4):
@@ -36,9 +33,7 @@ def generate_random_tesselation(nx, ny, number_of_relaxation_steps = 4):
     relaxation steps will be applied. In each relaxation step, the centroids of all voronoi cells
     will be collected and used as seeds for a new tesselation.
     """
-    print('is it this line?')
     mesh_generator = RandomTesselationGenerator(nx, ny, number_of_relaxation_steps)
-    print('nope!')
     return mesh_generator.generate_tesselation()
  
 class RandomTesselationGenerator:
@@ -93,9 +88,7 @@ class RandomTesselationGenerator:
 
         # First, we generate an initial tesselation. This is where the random seeds are made and the internal
         # mesh variable are first written
-        print('this must still be called')
         self.generate_initial_tesselation()
-        print('initial tesselation created')
         
         # if the user does not request relaxation steps, just return this mesh
         if ( self.number_of_relaxation_steps == 0 ):
@@ -117,9 +110,7 @@ class RandomTesselationGenerator:
                                                     self.padding_centroid_positions))
     
                 # We generate a Voronoi tesselation of 
-                print('hello again 1')
-                self.voronoi_diagram = VoronoiTess(all_centroid_positions)
-                print('hello again 2')
+                self.voronoi_diagram = scipy.spatial.Voronoi(all_centroid_positions)
                 # now we clean up that voronoi tesselation and set the mesh in the generator
                 self.remove_padding_cells_from_voronoi_diagram_and_create_mesh()
 
@@ -194,10 +185,8 @@ class RandomTesselationGenerator:
         centroid_positions = np.vstack((centroid_positions, self.padding_centroid_positions))
     
         # We generate a Voronoi tesselation of that
-        print('calling VoronoiTess for the first time')
         #self.voronoi_diagram = VoronoiTess(centroid_positions)
         self.voronoi_diagram = scipy.spatial.Voronoi(centroid_positions)
-        print('and now finished this first call')
         # now we clean up this voronoi tesselation and set the mesh of the generator
         # cleaning up means we remove the voronoi cells originating from the padding seeds
         self.remove_padding_cells_from_voronoi_diagram_and_create_mesh()
@@ -223,11 +212,13 @@ class RandomTesselationGenerator:
         # Loop over all regions and filter all regions that come from the dummy indices
         # this relies on the voronoi diagram indexing the regions and voronoi points in the same order
         
-        for region_index, voronoi_centre in enumerate(self.voronoi_diagram.points):
+        for centroid_index, voronoi_centre in enumerate(self.voronoi_diagram.points):
             # if this voronoi centre is inside the box (including the dummies)
             if ( not( voronoi_centre[0] < -3.5 or voronoi_centre[0] > self.nx + 4 + 0.5 
                       or voronoi_centre[1] < -3.5 or voronoi_centre[1] > self.ny + 4 + 0.5 )):
                 new_region = []
+                #this index will point to the entry containing the vertex indices corresponding to this vornoi centre
+                region_index = self.voronoi_diagram.point_region[centroid_index]
                 for vertex_index in self.voronoi_diagram.regions[region_index]:
                     # if the index is not in the new vertices, add it
                     if (index_map[vertex_index] == -1):
