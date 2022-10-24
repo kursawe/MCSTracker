@@ -1,6 +1,11 @@
 # Copyright 2016 Jochen Kursawe. See the LICENSE file at the top-level directory 
 # of this distribution and at https://github.com/kursawe/MCSTracker/blob/master/LICENSE.
 
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+
 import unittest
 import mesh
  

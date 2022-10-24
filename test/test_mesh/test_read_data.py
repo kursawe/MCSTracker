@@ -3,6 +3,12 @@
 
 """This test tests our initial mesh creation framework.
 """
+
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+
 import unittest
 import mesh
 from os import path
@@ -46,7 +52,7 @@ class TestReadData(unittest.TestCase):
             for this_element in this_mesh.elements:
                 self.assertGreater(this_element.get_num_nodes(), 2)
                 self.assertGreater(this_element.id_in_frame, 1)
-                self.assert_(this_network.node[this_element.id_in_frame]['position'] != None )
+                self.assert_(this_network.nodes[this_element.id_in_frame]['position'].any() != None )
                 if not this_element.check_if_on_boundary():
                     self.assertEqual( this_element.get_num_nodes(), this_network.degree(this_element.id_in_frame))
 

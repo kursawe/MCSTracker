@@ -3,11 +3,16 @@
 
 """This test tests our initial mesh creation framework.
 """
+
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+
 import unittest
 import mesh
 from os import path
 from os.path import dirname
-import os
 import glob
 from nose.plugins.attrib import attr
 import matplotlib.pyplot as plt
@@ -68,6 +73,7 @@ class TestConversion(unittest.TestCase):
             segmented_image = plt.imread(segmented_image_path)
             seed_image = mesh.create_seeds_from_image(segmented_image)
             out_file_name = os.path.join(out_path, 'seeds_' + image_filename)
+            seed_image = np.array(seed_image,dtype = 'uint16')
 #             plt.imsave( out_file_name, seed_image )
             cv2.imwrite( out_file_name, seed_image )
 

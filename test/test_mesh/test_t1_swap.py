@@ -3,6 +3,12 @@
 
 """This test tests our initial mesh creation framework.
 """
+
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+
 import unittest
 import mesh
 import numpy as np

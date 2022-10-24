@@ -3,6 +3,12 @@
 
 """This test tests our initial mesh creation framework.
 """
+
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+
 import unittest
 import mesh
 import numpy as np
@@ -192,8 +198,9 @@ class TestDivisionEvent(unittest.TestCase):
     def test_divide_element_in_random_direction(self):
         """test whether we can divide an element in a random direction"""
         
+        print('hello 1')
         my_mesh = mesh.creation.generate_random_tesselation(7,7)
-        
+        print('hello 2')
         # First pick an element in the centre
         mesh_centre = my_mesh.calculate_centre()
         
