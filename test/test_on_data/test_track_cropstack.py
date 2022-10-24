@@ -3,6 +3,11 @@
 
 """This tests our first tracking example
 """
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+
 import unittest
 import mesh
 import tracking
@@ -12,7 +17,7 @@ from os.path import dirname
 from nose.plugins.attrib import attr
 import sys
 import threading
-import resource
+#import resource
  
 class TestTrackCropstack(unittest.TestCase):
                                  
@@ -28,7 +33,7 @@ class TestTrackCropstack(unittest.TestCase):
 #        thread.join()
 
         
-    def xest_track_and_write_full_sequence(self):
+    def test_track_and_write_full_sequence(self):
 
 #         mesh_sequence = mesh.read_sequence_from_data(path.join(dirname(__file__),
 #                                                                '..','test_mesh','output','converted')) 
@@ -39,7 +44,7 @@ class TestTrackCropstack(unittest.TestCase):
                                                      'output','crostack_track'),
                                            start_number = 1, number_meshes = 21 ) 
         
-    def test_visualize_sequence(self):
+    def xest_visualize_sequence(self):
         tracking.plot_tracked_sequence( path.join(dirname(__file__),
                                                   'output','crostack_track'),
                                         path.join(dirname(__file__),
@@ -49,64 +54,64 @@ class TestTrackCropstack(unittest.TestCase):
                                         path.join(dirname(__file__),
                                                   'output','cropstack_track_visualized') )
  
-    def test_post_process_sequence(self):
+    def xest_post_process_sequence(self):
 
         data_collector = tracking.analyse_tracked_sequence(path.join(dirname(__file__),
                                                                      'output','crostack_track'))
                                                            
         for counter, this_mesh in enumerate(data_collector.mesh_sequence):
-            print 'mesh number'
-            print counter
-            print 'no of cells'
-            print this_mesh.get_num_elements()
-            print 'average cell area'
-            print this_mesh.calculate_average_element_area()
-            print 'number rosettes'
-            print this_mesh.count_rosettes()
+            print('mesh number')
+            print(counter)
+            print('no of cells')
+            print(this_mesh.get_num_elements())
+            print('average cell area')
+            print(this_mesh.calculate_average_element_area())
+            print('number rosettes')
+            print(this_mesh.count_rosettes())
             
         for mesh_data in data_collector.steps:
-            print 'step no'
-            print mesh_data.step_number
-            print 'no of cells in first mesh'
-            print mesh_data.mesh_one.get_num_elements()
-            print 'no of tracked cells'
-            print mesh_data.number_of_tracked_cells
-            print 'global ids of tracked cells'
-            print mesh_data.global_ids_of_tracked_cells
-            print 'no of dying cells'
-            print mesh_data.number_dying_cells
-            print 'global ids of dying cells'
-            print mesh_data.global_ids_of_dying_cells
-            print 'average centroid displacement'
-            print mesh_data.average_centroid_displacement
-            print 'maximal_centroid_displacement'
-            print mesh_data.maximal_centroid_displacement
-            print 'minimal_centroid_displacement'
-            print mesh_data.minimal_centroid_displacement
-            print 'print number of cells gaining edges'
-            print mesh_data.number_of_cells_gaining_edges
-            print 'print number of cells losing edges'
-            print mesh_data.number_of_cells_loosing_edges
-        print 'total_no_of_cell deaths'
-        print data_collector.number_dying_cells
-        print 'global ids of dying cells'
-        print data_collector.global_ids_of_dying_cells
-        print 'total average centroid displacement'
-        print data_collector.average_centroid_displacement
-        print 'total maximal_centroid_displacement'
-        print data_collector.maximal_centroid_displacement
-        print 'total minimal_centroid_displacement'
-        print data_collector.minimal_centroid_displacement
-        print 'total print number of cells gaining edges'
-        print data_collector.number_of_cells_gaining_edges
-        print 'total print number of cells losing edges'
-        print data_collector.number_of_cells_loosing_edges
-        print 'no of shared tracked cells'
-        print data_collector.number_of_tracked_cells
-        print 'global ids of shared tracked cells'
-        print data_collector.global_ids_of_tracked_cells
-        print 'total number of rosettes'
-        print data_collector.number_of_rosettes
+            print('step no')
+            print(mesh_data.step_number)
+            print('no of cells in first mesh')
+            print(mesh_data.mesh_one.get_num_elements())
+            print('no of tracked cells')
+            print(mesh_data.number_of_tracked_cells)
+            print('global ids of tracked cells')
+            print(mesh_data.global_ids_of_tracked_cells)
+            print('no of dying cells')
+            print(mesh_data.number_dying_cells)
+            print('global ids of dying cells')
+            print(mesh_data.global_ids_of_dying_cells)
+            print('average centroid displacement')
+            print(mesh_data.average_centroid_displacement)
+            print('maximal_centroid_displacement')
+            print(mesh_data.maximal_centroid_displacement)
+            print('minimal_centroid_displacement')
+            print(mesh_data.minimal_centroid_displacement)
+            print('print number of cells gaining edges')
+            print(mesh_data.number_of_cells_gaining_edges)
+            print('print number of cells losing edges')
+            print(mesh_data.number_of_cells_loosing_edges)
+        print('total_no_of_cell deaths')
+        print(data_collector.number_dying_cells)
+        print('global ids of dying cells')
+        print(data_collector.global_ids_of_dying_cells)
+        print('total average centroid displacement')
+        print(data_collector.average_centroid_displacement)
+        print('total maximal_centroid_displacement')
+        print(data_collector.maximal_centroid_displacement)
+        print('total minimal_centroid_displacement')
+        print(data_collector.minimal_centroid_displacement)
+        print('total print number of cells gaining edges')
+        print(data_collector.number_of_cells_gaining_edges)
+        print('total print number of cells losing edges')
+        print(data_collector.number_of_cells_loosing_edges)
+        print('no of shared tracked cells')
+        print(data_collector.number_of_tracked_cells)
+        print('global ids of shared tracked cells')
+        print(data_collector.global_ids_of_tracked_cells)
+        print('total number of rosettes')
+        print(data_collector.number_of_rosettes)
         
         data_collector.set_output_directory(path.join(dirname(__file__), 'output','analysed_cropstack'))
         data_collector.write_area_statistics()

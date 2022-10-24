@@ -3,6 +3,11 @@
 
 """This tests our first tracking example
 """
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__),'..','..','src'))
+
 import unittest
 import mesh
 import tracking
@@ -36,11 +41,11 @@ class TestTrackFewFrames(unittest.TestCase):
         
         second_mesh = mesh_sequence[1]
 
-        print 'I am testing...'
+        print('I am testing...')
         subgraph_finder = tracking.LocalisedSubgraphFinder(first_mesh, second_mesh)
-        print 'Can I find a subgraph?'
+        print('Can I find a subgraph?')
         subgraph_finder.find_maximum_common_subgraph()
-        print len(subgraph_finder.largest_mappings)
+        print(len(subgraph_finder.largest_mappings))
         post_processor = tracking.PostProcessor(first_mesh, second_mesh, subgraph_finder.largest_mappings)
         post_processor.index_global_ids_from_largest_mappings()
 
@@ -136,7 +141,7 @@ class TestTrackFewFrames(unittest.TestCase):
         for element in second_mesh.elements:
             if element.global_id != None:
                 if element.global_id in global_ids:
-                    print 'found double global id'
+                    print('found double global id')
                 else:
                     global_ids.append(element.global_id)
 
@@ -144,7 +149,7 @@ class TestTrackFewFrames(unittest.TestCase):
         for element in first_mesh.elements:
             if element.global_id != None:
                 if element.global_id in global_ids_one:
-                    print 'found double global id'
+                    print('found double global id')
                 else:
                     global_ids_one.append(element.global_id)
                     
@@ -191,8 +196,8 @@ class TestTrackFewFrames(unittest.TestCase):
         tracked_ids = tracking.track( first_mesh, second_mesh )
         end_time = time.clock()
 
-        print 'total time for first data pair is:'
-        print end_time - start_time
+        print('total time for first data pair is:')
+        print(end_time - start_time)
 
         first_mesh.plot( path.join(dirname(__file__),'output','first_mesh_tracked_total.pdf'), color_by_global_id = True, 
                          total_number_of_global_ids = first_mesh.get_num_elements())
@@ -212,8 +217,8 @@ class TestTrackFewFrames(unittest.TestCase):
         tracked_ids = tracking.track( first_mesh, second_mesh )
         end_time = time.clock()
 
-        print 'total time for second data pair is:'
-        print end_time - start_time
+        print('total time for second data pair is:')
+        print(end_time - start_time)
 
         first_mesh.plot(path.join(dirname(__file__),'output','second_mesh_tracked_with_third_total.pdf'), color_by_global_id = True, 
                       total_number_of_global_ids = first_mesh.get_num_elements())
@@ -235,52 +240,52 @@ class TestTrackFewFrames(unittest.TestCase):
                                                                      'output','first_few_frames'))
                                                            
         for counter, this_mesh in enumerate(data_collector.mesh_sequence):
-            print 'mesh number'
-            print counter
-            print 'no of cells'
-            print this_mesh.get_num_elements()
-            print 'average cell area'
-            print this_mesh.calculate_average_element_area()
+            print('mesh number')
+            print(counter)
+            print('no of cells')
+            print(this_mesh.get_num_elements())
+            print('average cell area')
+            print(this_mesh.calculate_average_element_area())
             
         for mesh_data in data_collector.steps:
-            print 'step no'
-            print mesh_data.step_number
-            print 'no of cells in first mesh'
-            print mesh_data.mesh_one.get_num_elements()
-            print 'no of tracked cells'
-            print mesh_data.number_of_tracked_cells
-            print 'global ids of tracked cells'
-            print mesh_data.global_ids_of_tracked_cells
-            print 'no of dying cells'
-            print mesh_data.number_dying_cells
-            print 'global ids of dying cells'
-            print mesh_data.global_ids_of_dying_cells
-            print 'average centroid displacement'
-            print mesh_data.average_centroid_displacement
-            print 'maximal_centroid_displacement'
-            print mesh_data.maximal_centroid_displacement
-            print 'minimal_centroid_displacement'
-            print mesh_data.minimal_centroid_displacement
-            print 'print number of cells gaining edges'
-            print mesh_data.number_of_cells_gaining_edges
-            print 'print number of cells losing edges'
-            print mesh_data.number_of_cells_loosing_edges
-        print 'total_no_of_cell deaths'
-        print data_collector.number_dying_cells
-        print 'global ids of dying cells'
-        print data_collector.global_ids_of_dying_cells
-        print 'total average centroid displacement'
-        print data_collector.average_centroid_displacement
-        print 'total maximal_centroid_displacement'
-        print data_collector.maximal_centroid_displacement
-        print 'total minimal_centroid_displacement'
-        print data_collector.minimal_centroid_displacement
-        print 'total print number of cells gaining edges'
-        print data_collector.number_of_cells_gaining_edges
-        print 'total print number of cells losing edges'
-        print data_collector.number_of_cells_loosing_edges
-        print 'no of shared tracked cells'
-        print data_collector.number_of_tracked_cells
-        print 'global ids of shared tracked cells'
-        print data_collector.global_ids_of_tracked_cells
+            print('step no')
+            print(mesh_data.step_number)
+            print('no of cells in first mesh')
+            print(mesh_data.mesh_one.get_num_elements())
+            print('no of tracked cells')
+            print(mesh_data.number_of_tracked_cells)
+            print('global ids of tracked cells')
+            print(mesh_data.global_ids_of_tracked_cells)
+            print('no of dying cells')
+            print(mesh_data.number_dying_cells)
+            print('global ids of dying cells')
+            print(mesh_data.global_ids_of_dying_cells)
+            print('average centroid displacement')
+            print(mesh_data.average_centroid_displacement)
+            print('maximal_centroid_displacement')
+            print(mesh_data.maximal_centroid_displacement)
+            print('minimal_centroid_displacement')
+            print(mesh_data.minimal_centroid_displacement)
+            print('print number of cells gaining edges')
+            print(mesh_data.number_of_cells_gaining_edges)
+            print('print number of cells losing edges')
+            print(mesh_data.number_of_cells_loosing_edges)
+        print('total_no_of_cell deaths')
+        print(data_collector.number_dying_cells)
+        print('global ids of dying cells')
+        print(data_collector.global_ids_of_dying_cells)
+        print('total average centroid displacement')
+        print(data_collector.average_centroid_displacement)
+        print('total maximal_centroid_displacement')
+        print(data_collector.maximal_centroid_displacement)
+        print('total minimal_centroid_displacement')
+        print(data_collector.minimal_centroid_displacement)
+        print('total print number of cells gaining edges')
+        print(data_collector.number_of_cells_gaining_edges)
+        print('total print number of cells losing edges')
+        print(data_collector.number_of_cells_loosing_edges)
+        print('no of shared tracked cells')
+        print(data_collector.number_of_tracked_cells)
+        print('global ids of shared tracked cells')
+        print(data_collector.global_ids_of_tracked_cells)
         
