@@ -616,7 +616,7 @@ class Mesh():
         
         redundant, not tested
         """
-        max_global_id = np.max( np.array( self.global_id_dictionary.keys() ) )
+        max_global_id = np.max( np.fromiter( self.global_id_dictionary.keys(), dtype = 'int' ) )
         
         return max_global_id
     
