@@ -68,7 +68,7 @@ def track_and_write_sequence(input_path, output_path, start_number = 1, number_m
         index of the last mesh we want to track (indexing starts at one)
     """
 
-    mesh_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes) 
+    mesh_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)
     previous_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)   
     next_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)
     
@@ -214,6 +214,7 @@ def plot_tracked_sequence( sequence_path, image_path, segmented_path, out_path )
 
     for mesh_counter, mesh_instance in enumerate( mesh_sequence ):
         this_image_path = list_of_image_files[mesh_counter]
+        print(list_of_segmented_files)
         this_segmented_path = list_of_segmented_files[mesh_counter]
         out_file_name = os.path.split( this_image_path.replace('.tif', '_overlay.png') )[1]
 
@@ -315,7 +316,9 @@ class DataCollector():
                 except KeyError:
                     this_area = np.nan
                 cell_area_data[global_id, mesh_counter] = this_area
-        np.savetxt(os.path.join(self.output_directory, 'cell_area_statistics.csv' ), cell_area_data)
+
+#Added comma delimiter for reading in rows to make plots.  -Aimee
+        np.savetxt(os.path.join(self.output_directory, 'cell_area_statistics.csv' ), cell_area_data, delimiter = ',')
                 
     def collect_all_steps(self):
         """Generate StepDataCollectors for each time step"""
