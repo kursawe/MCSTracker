@@ -229,6 +229,75 @@ def plot_tracked_sequence( sequence_path, image_path, segmented_path, out_path )
         mesh_instance.plot( mcs_file_name, color_by_global_id = True,
                             total_number_of_global_ids = max_global_id, reduced_mcs_only = True )
 
+
+def colour_segmentation_sequence_by_global_id( sequence_path, segmented_path, out_path ):
+    """Recolour a sequence of segmentations by the global ids found during tracking.
+    
+    
+    Parameters
+    ----------
+    
+    sequence_path : string
+        path to the tracked mesh sequence (contains a series of .mesh files) 
+        
+    segmented_path : string
+        path where the overlay should be saved. Will be created if required.
+        
+    Output
+    -------
+    
+    A sequence of single-channel 12-bit unsigned .tif files in which the grey hue 
+    has the same numerical value as the global id.
+    """
+
+    mesh_sequence = mesh.load_sequence( sequence_path )
+    
+    #list_of_image_files = glob.glob( os.path.join( image_path , '*.tif') )
+    #list_of_image_files.sort(key=_natural_keys)
+
+    list_of_segmented_files = glob.glob( os.path.join( segmented_path , '*.tif') )
+    list_of_segmented_files.sort(key=_natural_keys)
+
+    # get maximal global id
+    max_global_id = 0
+    for mesh_instance in mesh_sequence:
+        this_max_global_id = mesh_instance.get_max_global_id()
+        if this_max_global_id > max_global_id:
+            max_global_id = this_max_global_id
+    
+    if not os.path.isdir(out_path):
+        os.mkdir( out_path )
+        
+    recoloured_segmentation_path = os.path.join(out_path, 'recoloured_segmentation')
+    if not os.path.isdir(recoloured_segmentation_path):
+        os.mkdir( recoloured_segmentation_path )
+
+    # polygon_path = os.path.join(out_path, 'polygons')
+    # if not os.path.isdir(polygon_path):
+    #     os.mkdir( polygon_path )
+        
+    # mcs_path = os.path.join(out_path, 'mcs')
+    # if not os.path.isdir(mcs_path):
+    #     os.mkdir( mcs_path )
+
+    for mesh_counter, mesh_instance in enumerate( mesh_sequence ):
+        #this_image_path = list_of_image_files[mesh_counter]
+        #print(list_of_segmented_files)
+        this_segmented_path = list_of_segmented_files[mesh_counter]
+        out_file_name = os.path.split( this_segmented_path.replace('.tif', '_recoloured_segmentation.tiff') )[1]
+
+        recoloured_segmentation_file_path = os.path.join(recoloured_segmentation_path, out_file_name)
+        mesh_instance.colour_segmentation_by_global_id(recoloured_segmentation_file_path, this_segmented_path, max_global_id)
+
+        # polygon_file_name = os.path.join( polygon_path, out_file_name )
+        # mesh_instance.plot( polygon_file_name, color_by_global_id = True,
+        #                     total_number_of_global_ids = max_global_id)
+        
+        # mcs_file_name = os.path.join( mcs_path, out_file_name )
+        # mesh_instance.plot( mcs_file_name, color_by_global_id = True,
+        #                     total_number_of_global_ids = max_global_id, reduced_mcs_only = True )
+
+
 class DataCollector():
     """A class for analysing tracked sequences."""
     

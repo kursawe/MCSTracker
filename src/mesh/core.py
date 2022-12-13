@@ -17,6 +17,8 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 
+from PIL import Image
+
 class Mesh():
     """A mesh similar to a mutable vertex mesh in Chaste or an unstructured grid in VTK.
     """
@@ -1631,6 +1633,49 @@ class Mesh():
                 helper_image[:] = 0
                 
         cv2.imwrite( filename, overlay_image )
+        
+    def colour_segmentation_by_global_id(self, filename, segmented_path, max_global_id):
+        """Recolours the segmentation.  Each global id is assigned a unique grey hue.
+        
+        Parameters
+        ----------
+        
+        filename : string
+            path to the file where the overlay should be saved
+            
+        real_frame_matrix : string
+            path to the image that is associated with this frame.
+        """
+        
+        
+        segmented_image = cv2.imread( segmented_path, flags = -1 )
+        
+        color_selection = np.linspace(0, 65535, num=65536).astype(int)
+
+        recoloured_image = np.zeros( ( segmented_image.shape[0], segmented_image.shape[1]),
+                                    dtype = 'uint16' ) 
+        #The background pixel value must be different to the global ids.  Global ids start from 0.  Therefore, the background pixel value must not be zero.
+        recoloured_image[:]=max_global_id + 100
+        helper_image = np.zeros( ( segmented_image.shape[0], segmented_image.shape[1]),
+                                  dtype = 'uint16' )
+
+        cell_counter = 0
+        for element in self.elements:
+            if element.global_id != None:
+                cell_counter+=1
+                this_color = color_selection[element.global_id]
+                this_frame_id = element.id_in_frame
+                this_mask = segmented_image == this_frame_id
+                helper_image[this_mask] = this_color
+                recoloured_image[this_mask] = helper_image[this_mask]
+                
+                helper_image[:] = 0
+                
+        recoloured_segmentation = Image.fromarray(recoloured_image)
+        
+        recoloured_segmentation.save(filename, 'TIFF')
+        
+
 
     def get_node_with_id(self, node_id):
         """Get the node instance that corresponds to this node id.
