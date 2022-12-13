@@ -1635,44 +1635,78 @@ class Mesh():
         cv2.imwrite( filename, overlay_image )
         
     def colour_segmentation_by_global_id(self, filename, segmented_path, max_global_id):
-        """Recolours the segmentation.  Each global id is assigned a unique grey hue.
+        """Recolours a single segmented frame with a unique grey hue for each global id.
+        The value of each pixel is equal to the global id assigned to that pixel.
         
         Parameters
         ----------
         
         filename : string
-            path to the file where the overlay should be saved
+            path to the file where the segmentation coloured by global id should be saved.
             
-        real_frame_matrix : string
-            path to the image that is associated with this frame.
+        segmented_path : string
+            path to the original segmented frame.
+            
+        Output
+        ------
+        Single-channel 16-bit unsigned integer .tiff segmented frame, in which the value of
+        each pixel is equal to the global id assigned to that pixel.  The recoloured 
+        segmentation is saved to filename.
+        
+        Note: this function can recolour frames with a maximum of 65535 cells.  In its current form,
+        the maximum permissible number of cells is 65435, because a value of max_global_id + 100 is
+        assigned to pixels that do not belong to any cell (i.e. the background pixels). This improves 
+        contrast between cells when the recoloured segmentation is viewed in ImageJ. 
+        To increase the maximum permissible number of cells to 65535, simply change the background pixel
+        value to max_global_id + 1.  Alternatively, one can change the array data type to 'uint32' or
+        'uint64' to accommodate a greater number of cells per frame.
+        When analysing outputs from this function, recall that the largest pixel value in each frame
+        corresponds to the background.  Therefore, if using unique pixel values to identify the cells
+        present in the images, remember to first remove the largest value from the list of unique pixel 
+        values.
         """
         
-        
+        #Read in the segmented image.
         segmented_image = cv2.imread( segmented_path, flags = -1 )
         
+        #Define the values that can be assigned to pixels in the image.  The number of available values is limited by the number of bits in the output array.
         color_selection = np.linspace(0, 65535, num=65536).astype(int)
-
+        
+        #Define an array of zeroes with the same dimensions as the segmented image.
         recoloured_image = np.zeros( ( segmented_image.shape[0], segmented_image.shape[1]),
                                     dtype = 'uint16' ) 
         #The background pixel value must be different to the global ids.  Global ids start from 0.  Therefore, the background pixel value must not be zero.
         recoloured_image[:]=max_global_id + 100
+        
+        #Define a helper array of zeroes with the same dimensions as the segmented image.
         helper_image = np.zeros( ( segmented_image.shape[0], segmented_image.shape[1]),
                                   dtype = 'uint16' )
-
+        
+        #Initiate a cell counter. 
         cell_counter = 0
+        #Iterate through the elements in the mesh (this is clearer if you inspect the related function colour_segmented_sequence_by_global_id in tracking/core.py).
         for element in self.elements:
+            #If the element has a global id
             if element.global_id != None:
+                #Update the cell counter.
                 cell_counter+=1
+                #Choose from the colour selection the value equal to the global id.
                 this_color = color_selection[element.global_id]
+                #Find the id_in_frame of the element.
                 this_frame_id = element.id_in_frame
+                #Make a mask from the region of the segmented image with frame id this_frame_id.
                 this_mask = segmented_image == this_frame_id
+                #Change the colour of the corresponding region of the helper image to this_color.
                 helper_image[this_mask] = this_color
+                #Give this region of the recoloured_image the same colour.
                 recoloured_image[this_mask] = helper_image[this_mask]
-                
+                #Reset the helper image to an array of zeroes.
                 helper_image[:] = 0
                 
+        #Make an image from the recoloured segmentation array.       
         recoloured_segmentation = Image.fromarray(recoloured_image)
         
+        #Save the recoloured segmentation.
         recoloured_segmentation.save(filename, 'TIFF')
         
 
