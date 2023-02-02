@@ -14,6 +14,7 @@ import pickle
 from .core import Mesh, Node, Element
 import mahotas
 
+
 def load(filename):
     """Reads a saved mesh back from a file.
     
@@ -60,7 +61,7 @@ def convert_from_ilastik( picture_path, segmentation_path, out_path ):
     
     list_of_image_files = glob.glob( os.path.join(picture_path , '*.tif') )
     list_of_image_files.sort(key=_natural_keys)
-
+    
     list_of_segmented_files = glob.glob( os.path.join( segmentation_path , '*.tif') )
     list_of_segmented_files.sort(key=_natural_keys)
     
@@ -90,7 +91,7 @@ def convert_single_file_from_ilastik( image_path, segmentation_path, out_path ):
         where the converted file should be stored
     """
     full_image = plt.imread(image_path)
-
+    
     segmented_image = plt.imread(segmentation_path)
 
     seed_image = create_seeds_from_image(segmented_image)
@@ -199,8 +200,9 @@ def read_sequence_from_data(folder_name, start_number = 1, number_meshes = None)
     mesh_sequence : list of Mesh instances
         elements of the list are instances of Mesh
     """
-    list_of_files = glob.glob(path.join(folder_name, '*.tif'))
+    list_of_files = glob.glob(path.join(folder_name, '*.tif*'))
     list_of_files.sort(key=_natural_keys)
+
     if number_meshes != None:
         list_of_files = list_of_files[(start_number -1):number_meshes]
     else:
@@ -210,7 +212,6 @@ def read_sequence_from_data(folder_name, start_number = 1, number_meshes = None)
     for filename in list_of_files:
         print("reading" + str(filename))
         mesh_sequence.append( read_frame_from_data(filename) )
-        
     return mesh_sequence   
 
 def read_frame_from_data(filename):
@@ -423,38 +424,41 @@ def find_triple_junctions_at_pixel(this_image, x_index, y_index):
             if np.any(np.all( triple_junctions == [x_index, y_index] , axis = 1)):
                 ordered_triple_junctions.append( [x_index, y_index])
 
-        if central_value == values_in_neighbourhood[1,0] and central_value != values_in_neighbourhood[2,1]:
+        if values_in_neighbourhood.shape[0] == 3:
+            if central_value == values_in_neighbourhood[1,0] and central_value != values_in_neighbourhood[2,1]:
 
-            if np.any(np.all( triple_junctions == [x_index +1, y_index -1] , axis = 1)):
-                ordered_triple_junctions.append( [x_index +1, y_index -1])
-            if np.any(np.all( triple_junctions == [x_index +1, y_index] , axis = 1)):
-                ordered_triple_junctions.append( [x_index +1, y_index])
-            if np.any(np.all( triple_junctions == [x_index, y_index] , axis = 1)):
-                ordered_triple_junctions.append( [x_index, y_index])
-            if np.any(np.all( triple_junctions == [x_index, y_index -1] , axis = 1)):
-                ordered_triple_junctions.append( [x_index, y_index -1] )
+                if np.any(np.all( triple_junctions == [x_index +1, y_index -1] , axis = 1)):
+                    ordered_triple_junctions.append( [x_index +1, y_index -1])
+                if np.any(np.all( triple_junctions == [x_index +1, y_index] , axis = 1)):
+                    ordered_triple_junctions.append( [x_index +1, y_index])
+                if np.any(np.all( triple_junctions == [x_index, y_index] , axis = 1)):
+                    ordered_triple_junctions.append( [x_index, y_index])
+                if np.any(np.all( triple_junctions == [x_index, y_index -1] , axis = 1)):
+                    ordered_triple_junctions.append( [x_index, y_index -1] )
 
-        if central_value == values_in_neighbourhood[2,1] and central_value != values_in_neighbourhood[1,2]:
+        if values_in_neighbourhood.shape[0] == 3 and values_in_neighbourhood.shape[1] == 3:
+            if central_value == values_in_neighbourhood[2,1] and central_value != values_in_neighbourhood[1,2]:
+    
+                if np.any(np.all( triple_junctions == [x_index +1, y_index] , axis = 1)):
+                    ordered_triple_junctions.append( [x_index +1, y_index])
+                if np.any(np.all( triple_junctions == [x_index, y_index] , axis = 1)):
+                    ordered_triple_junctions.append( [x_index, y_index])
+                if np.any(np.all( triple_junctions == [x_index, y_index -1] , axis = 1)):
+                    ordered_triple_junctions.append( [x_index, y_index -1] )
+                if np.any(np.all( triple_junctions == [x_index +1, y_index -1] , axis = 1)):
+                    ordered_triple_junctions.append( [x_index +1, y_index -1])
 
-            if np.any(np.all( triple_junctions == [x_index +1, y_index] , axis = 1)):
-                ordered_triple_junctions.append( [x_index +1, y_index])
-            if np.any(np.all( triple_junctions == [x_index, y_index] , axis = 1)):
-                ordered_triple_junctions.append( [x_index, y_index])
-            if np.any(np.all( triple_junctions == [x_index, y_index -1] , axis = 1)):
-                ordered_triple_junctions.append( [x_index, y_index -1] )
-            if np.any(np.all( triple_junctions == [x_index +1, y_index -1] , axis = 1)):
-                ordered_triple_junctions.append( [x_index +1, y_index -1])
-
-        if central_value == values_in_neighbourhood[1,2] and central_value != values_in_neighbourhood[0,1]:
-
-            if np.any(np.all( triple_junctions == [x_index, y_index] , axis = 1)):
-                ordered_triple_junctions.append( [x_index, y_index])
-            if np.any(np.all( triple_junctions == [x_index, y_index -1] , axis = 1)):
-                ordered_triple_junctions.append( [x_index, y_index -1] )
-            if np.any(np.all( triple_junctions == [x_index +1, y_index -1] , axis = 1)):
-                ordered_triple_junctions.append( [x_index +1, y_index -1])
-            if np.any(np.all( triple_junctions == [x_index +1, y_index] , axis = 1)):
-                ordered_triple_junctions.append( [x_index +1, y_index])
+        if values_in_neighbourhood.shape[1] == 3:
+            if central_value == values_in_neighbourhood[1,2] and central_value != values_in_neighbourhood[0,1]:
+    
+                if np.any(np.all( triple_junctions == [x_index, y_index] , axis = 1)):
+                    ordered_triple_junctions.append( [x_index, y_index])
+                if np.any(np.all( triple_junctions == [x_index, y_index -1] , axis = 1)):
+                    ordered_triple_junctions.append( [x_index, y_index -1] )
+                if np.any(np.all( triple_junctions == [x_index +1, y_index -1] , axis = 1)):
+                    ordered_triple_junctions.append( [x_index +1, y_index -1])
+                if np.any(np.all( triple_junctions == [x_index +1, y_index] , axis = 1)):
+                    ordered_triple_junctions.append( [x_index +1, y_index])
     else:
         ordered_triple_junctions = triple_junctions
         
@@ -514,7 +518,7 @@ def extract_vertex_data(this_image, contour_list, cell_ids):
     no_of_cells_per_vertex = np.zeros(number_of_vertices_estimate, dtype=np.int64)
 
     # We also overestimate the maximal number of vertices that a cell can have
-    vertices_of_cells = np.zeros( (no_of_cells,30), dtype=np.int64)
+    vertices_of_cells = np.zeros( (no_of_cells,100), dtype=np.int64)
     number_vertices_of_cells = np.zeros(no_of_cells, dtype=np.int64)
 
     # We loop over each cell
