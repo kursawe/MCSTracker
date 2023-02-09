@@ -1295,6 +1295,7 @@ class PostProcessor():
             potential_mother_cell = potential_mother_cells[0]
             if potential_mother_cell in mappings_based_on_adjacency:
                 del mappings_based_on_adjacency[potential_mother_cell]
+
             for frame_id in mappings_based_on_adjacency:
                 self.preliminary_mappings[frame_id] = mappings_based_on_adjacency[frame_id]
         else:
@@ -1524,8 +1525,8 @@ class PostProcessor():
         self.mesh_one.index_global_ids()
         self.mesh_two.index_global_ids()
         # make the connected components
-        connected_component_one = self.network_one.subgraph( unmapped_elements_belonging_to_connected_component_in_network_one )
-        connected_component_two = self.network_one.subgraph( unmapped_elements_belonging_to_connected_component_in_network_two )
+        connected_component_one = nx.Graph(self.network_one.subgraph( unmapped_elements_belonging_to_connected_component_in_network_one ))
+        connected_component_two = nx.Graph( self.network_one.subgraph( unmapped_elements_belonging_to_connected_component_in_network_two ))
 
         # pass to our connected component function
         try:

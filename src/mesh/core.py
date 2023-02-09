@@ -1175,7 +1175,7 @@ class Mesh():
                 
         return mapped_ids
  
-    def get_not_yet_mapped_shared_neighbour_ids(self, list_of_frame_ids, already_mapped_ids = []):
+    def get_not_yet_mapped_shared_neighbour_ids(self, list_of_frame_ids_passed, already_mapped_ids = []):
         """Finds all elements that have not yet been mapped and are adjacent to all elements in the list.
         
         Elements that have not yet been mapped are identified by having global_id == None.
@@ -1183,8 +1183,9 @@ class Mesh():
         Parameters
         ----------
         
-        list_of_frame_ids : list of ints
-            list of id_in_frames of the elements whose shared neighbours we are interested in
+        list_of_frame_ids_passed : list of ints
+            list of id_in_frames of the elements whose shared neighbours we are interested in.
+            Can be a 'dict.keys'-type object.
             
         already_mapped_ids : list of ints
             elements for which an entry exists but for which the global ids have not yet been set
@@ -1195,6 +1196,7 @@ class Mesh():
         not_yet_mapped_ids : list of ints
             list of frame ids of all elements that are adjacent to all elements in list_of_frame_ids and have None as global_id
         """
+        list_of_frame_ids = list(list_of_frame_ids_passed)
         
         if list_of_frame_ids != []:
             set_of_shared_adjacent_elements = set( self.get_element_with_frame_id(list_of_frame_ids[0]).get_ids_of_adjacent_elements() )
