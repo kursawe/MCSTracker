@@ -1847,6 +1847,7 @@ class Element():
             next_index = (index + 1)%self.get_num_nodes()
             next_node = self.nodes[next_index]
             area += (node.position[0] * next_node.position[1]) - (next_node.position[0] * node.position[1])
+        print(self.frame_id)
         area = area/2.
         return area
     
@@ -1868,6 +1869,11 @@ class Element():
             centroid[1] += (node.position[1] + next_node.position[1]) * ((node.position[0] * next_node.position[1]) - 
                                                                          (next_node.position[0] * node.position[1]))
         area = self.calculate_area()
+#       if area == 0:
+#           remove_element_with_frame_id(frame_id)
+#       else:
+
+            
         assert(area > 0)
         centroid = centroid/(6.0*area)
         assert(len(centroid) == 2)

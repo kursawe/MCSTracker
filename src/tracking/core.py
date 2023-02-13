@@ -259,7 +259,7 @@ def colour_segmented_sequence_by_global_id( sequence_path, segmented_path, out_p
     list_of_segmented_files = glob.glob( os.path.join( segmented_path , '*.tif') )
     #Sort the list of file names.
     list_of_segmented_files.sort(key=_natural_keys)
-
+    print(list_of_segmented_files)
     # get maximal global id
     max_global_id = 0
     for mesh_instance in mesh_sequence:
