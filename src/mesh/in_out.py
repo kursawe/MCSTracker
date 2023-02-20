@@ -274,6 +274,8 @@ def read_data_and_create_raw_mesh( filename ):
         
     this_mesh = Mesh( nodes, elements )
     
+    #this_mesh.remove_flat_elements()
+    
     return this_mesh 
 
 def get_contour_list(this_image):

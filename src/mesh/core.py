@@ -62,6 +62,51 @@ class Mesh():
          
         self.assign_node_ids_in_order()
         self.build_frame_id_dictionary()
+    
+    
+    def plot_elements_with_negative_area(self, file_name, value):
+        
+        ids_in_frame = list()
+        for this_element in self.elements:
+            this_id = this_element.id_in_frame
+            ids_in_frame.append(this_id)
+            
+        max_id_in_frame = max(ids_in_frame)
+        
+        for this_element in self.elements:
+            this_area = this_element.calculate_area()
+            
+            if this_area < 0:
+                this_element.id_in_frame = max_id_in_frame + value
+                
+        Mesh.plot(self, filename = file_name)
+                
+                
+        
+    
+    
+    def remove_flat_elements(self):
+        '''
+        Remove all elements of the mesh that have fewer than three nodes.
+
+        Returns
+        -------
+        None.
+
+        '''
+        element_ids_to_delete = list()
+        for this_element in self.elements:
+            # if this_element.get_num_nodes()<=2:
+            #     element_ids_to_delete.append(this_element.id_in_frame)
+
+            this_element_area = this_element.calculate_area()
+            if this_element_area <= 0: 
+                print('The problem area is ', this_element_area)
+                element_ids_to_delete.append(this_element.id_in_frame)
+
+        for this_element_id in element_ids_to_delete:
+            self.delete_element_with_frame_id(this_element_id)
+            print('I deleted a flat element.')
         
     def get_num_nodes(self):
         """Get the number of nodes in the mesh.
@@ -1849,10 +1894,40 @@ class Element():
             next_index = (index + 1)%self.get_num_nodes()
             next_node = self.nodes[next_index]
             area += (node.position[0] * next_node.position[1]) - (next_node.position[0] * node.position[1])
-        print(self.frame_id)
+
         area = area/2.
         return area
-    
+
+    # def calculate_centroid(self):
+    #     """Calculate the centroid of the vertex element
+        
+    #     Returns
+    #     -------
+        
+    #     centroid :  1x2 np_array
+    #         position of the centroid of the element
+    #     """
+    #     centroid = np.zeros(2)
+    #     for index, node in enumerate(self.nodes):
+    #         next_index = (index + 1)%self.get_num_nodes()
+    #         next_node = self.nodes[next_index]
+    #         centroid[0] += (node.position[0] + next_node.position[0]) * ((node.position[0] * next_node.position[1]) - 
+    #                                                                       (next_node.position[0] * node.position[1]))
+    #         centroid[1] += (node.position[1] + next_node.position[1]) * ((node.position[0] * next_node.position[1]) - 
+    #                                                                       (next_node.position[0] * node.position[1]))
+    #     area = self.calculate_area()
+
+    #     if area == 0:
+    #           print('Area is zero')
+    #           this_id = self.id_in_frame
+    #           self.delete_element_with_frame_id(this_id)
+    #     else:
+    #           centroid = centroid/(6.0*area)
+    #           assert(len(centroid) == 2)
+    #           return centroid
+
+
+        
     def calculate_centroid(self):
         """Calculate the centroid of the vertex element
         
@@ -1867,19 +1942,16 @@ class Element():
             next_index = (index + 1)%self.get_num_nodes()
             next_node = self.nodes[next_index]
             centroid[0] += (node.position[0] + next_node.position[0]) * ((node.position[0] * next_node.position[1]) - 
-                                                                         (next_node.position[0] * node.position[1]))
+                                                                          (next_node.position[0] * node.position[1]))
             centroid[1] += (node.position[1] + next_node.position[1]) * ((node.position[0] * next_node.position[1]) - 
-                                                                         (next_node.position[0] * node.position[1]))
+                                                                          (next_node.position[0] * node.position[1]))
         area = self.calculate_area()
-#       if area == 0:
-#           remove_element_with_frame_id(frame_id)
-#       else:
 
-            
         assert(area > 0)
         centroid = centroid/(6.0*area)
         assert(len(centroid) == 2)
         return centroid
+   
     
     def replace_adjacent_element_with_node(self, frame_id, node):
         """Finds the edge to the element with given id, and replaces the edge with the given node.
