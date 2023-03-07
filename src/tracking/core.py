@@ -1301,8 +1301,10 @@ class PostProcessor():
             if potential_mother_cell in mappings_based_on_adjacency:
                 del mappings_based_on_adjacency[potential_mother_cell]
 
+            already_identified_mapping_targets = self.preliminary_mappings.values()
             for frame_id in mappings_based_on_adjacency:
-                self.preliminary_mappings[frame_id] = mappings_based_on_adjacency[frame_id]
+                if mappings_based_on_adjacency[frame_id] not in already_identified_mapping_targets:
+                    self.preliminary_mappings[frame_id] = mappings_based_on_adjacency[frame_id]
         else:
             potential_daughter_cells = self.mesh_two.get_not_yet_mapped_shared_neighbour_ids( bordering_cells_mapping.values() )
 #             assert ( len(potential_daughter_cells) > 1)
