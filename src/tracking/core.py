@@ -69,12 +69,12 @@ def track_and_write_sequence(input_path, output_path, start_number = 1, number_m
     """
 
     mesh_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)
-    previous_sequence = copy.deepcopy(mesh_sequence)
-    next_sequence = copy.deepcopy(mesh_sequence)
+    #previous_sequence = copy.deepcopy(mesh_sequence)
+    #next_sequence = copy.deepcopy(mesh_sequence)
     
     #Changed these lines to copy.deepcopy(mesh_sequence) to try to speed up reading in the files.
-    #previous_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)   
-    #next_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)
+    previous_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)   
+    next_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)
     
     # track all consecutive time frames individually
     step_sequence = []
@@ -84,6 +84,7 @@ def track_and_write_sequence(input_path, output_path, start_number = 1, number_m
             corresponding_mesh = next_sequence[counter]
             try:
                 track(previous_mesh, corresponding_mesh)
+                print('Tracked mesh ', counter)
             except FirstIndexException:
                 print("Could not find first index in tracking step " + str(counter))
             step_sequence.append([previous_mesh, corresponding_mesh])

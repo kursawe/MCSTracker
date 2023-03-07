@@ -274,7 +274,7 @@ def read_data_and_create_raw_mesh( filename ):
         
     this_mesh = Mesh( nodes, elements )
     
-    #this_mesh.remove_flat_elements()
+
     
     return this_mesh 
 
@@ -514,13 +514,13 @@ def extract_vertex_data(this_image, contour_list, cell_ids):
     
     no_of_cells = len(cell_ids)
     # We overestimate the size of this array by approximately a factor of 2
-    number_of_vertices_estimate = int(no_of_cells*7/2)
+    number_of_vertices_estimate = int(no_of_cells*10)
     vertex_array = np.zeros( ( number_of_vertices_estimate, 2 ), dtype=np.int64 )
     no_of_vertices = 0
     no_of_cells_per_vertex = np.zeros(number_of_vertices_estimate, dtype=np.int64)
 
     # We also overestimate the maximal number of vertices that a cell can have
-    vertices_of_cells = np.zeros( (no_of_cells,100), dtype=np.int64)
+    vertices_of_cells = np.zeros( (no_of_cells,1000), dtype=np.int64)
     number_vertices_of_cells = np.zeros(no_of_cells, dtype=np.int64)
 
     # We loop over each cell

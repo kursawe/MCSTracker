@@ -64,202 +64,202 @@ class Mesh():
         self.build_frame_id_dictionary()
     
     
-    def plot_elements_with_negative_area(self, file_name, value):
+    # def plot_elements_with_negative_area(self, file_name, value):
         
-        ids_in_frame = list()
-        ids_to_change = list()
+    #     ids_in_frame = list()
+    #     ids_to_change = list()
         
-        initial_areas = list()
-        new_areas = list()
+    #     initial_areas = list()
+    #     new_areas = list()
         
-        for this_element in self.elements:
-            this_id = this_element.id_in_frame
-            ids_in_frame.append(this_id)
-        print('There are ', len(ids_in_frame), ' cells in this frame.')
+    #     for this_element in self.elements:
+    #         this_id = this_element.id_in_frame
+    #         ids_in_frame.append(this_id)
+    #     print('There are ', len(ids_in_frame), ' cells in this frame.')
         
-        max_id_in_frame = max(ids_in_frame)
-        print('The max id in frame is: ', max_id_in_frame)
+    #     max_id_in_frame = max(ids_in_frame)
+    #     print('The max id in frame is: ', max_id_in_frame)
         
-        for this_element in self.elements:
-            this_area = this_element.calculate_area()
-            this_area_new = this_element.calculate_area_2()
-            initial_areas.append(this_area)
-            new_areas.append(this_area_new)
-            if this_area < 0:
-                this_element_id = this_element.id_in_frame
-                ids_to_change.append(this_element_id)
+    #     for this_element in self.elements:
+    #         this_area = this_element.calculate_area()
+    #         this_area_new = this_element.calculate_area_2()
+    #         initial_areas.append(this_area)
+    #         new_areas.append(this_area_new)
+    #         if this_area < 0:
+    #             this_element_id = this_element.id_in_frame
+    #             ids_to_change.append(this_element_id)
                 
-                print('Found an element with negative area')
-                print(this_area)
-                print('This element has ',  this_element.get_num_nodes(), ' shared nodes.')
+    #             print('Found an element with negative area')
+    #             print(this_area)
+    #             print('This element has ',  this_element.get_num_nodes(), ' shared nodes.')
                
-                neighbours = this_element.get_ids_of_adjacent_elements()
-                print('The ids of adjacent elements are: ', neighbours)
-                neighbour_1_id = neighbours[0]
-                neighbour_1 = self.get_element_with_frame_id(neighbour_1_id)
-                neighbour_1_centroid = neighbour_1.calculate_centroid()
-                print('The centroid of the first neighbour is: ', neighbour_1_centroid)
+    #             neighbours = this_element.get_ids_of_adjacent_elements()
+    #             print('The ids of adjacent elements are: ', neighbours)
+    #             neighbour_1_id = neighbours[0]
+    #             neighbour_1 = self.get_element_with_frame_id(neighbour_1_id)
+    #             neighbour_1_centroid = neighbour_1.calculate_centroid()
+    #             print('The centroid of the first neighbour is: ', neighbour_1_centroid)
                 
-        print('The ids of negative elements are: ', ids_to_change)
-        print('The original areas are: ', initial_areas)
-        print('The new areas are: ', new_areas)
-        Mesh.plot_negative_area_cells(self, filename = file_name)
+    #     print('The ids of negative elements are: ', ids_to_change)
+    #     print('The original areas are: ', initial_areas)
+    #     print('The new areas are: ', new_areas)
+    #     Mesh.plot_negative_area_cells(self, filename = file_name)
                 
-    def plot_negative_area_cells(self, filename, color_by_global_id = False, total_number_of_global_ids = None, reduced_mcs_only = False):
-        """Plots the mesh to a file using matplotlib
+    # def plot_negative_area_cells(self, filename, color_by_global_id = False, total_number_of_global_ids = None, reduced_mcs_only = False):
+    #     """Plots the mesh to a file using matplotlib
         
-        Parameters
-        ----------
+    #     Parameters
+    #     ----------
         
-        filename : string
-            name of the file to which we should plot
+    #     filename : string
+    #         name of the file to which we should plot
         
-        color_by_global_id : bool or matplotlib color
-            If this is true, the color will not be selected by the frame id, but by the global id.
-            This will only work if the input parameter total_number_of_global_ids is also specified.
-            Otherwise the function will not know how many colors the colormap will need to have.
-            If this is false, the color will be random as specified by the frame ids.
-            If this is a matplotlib color, cells that have a global id will show up in this color.
+    #     color_by_global_id : bool or matplotlib color
+    #         If this is true, the color will not be selected by the frame id, but by the global id.
+    #         This will only work if the input parameter total_number_of_global_ids is also specified.
+    #         Otherwise the function will not know how many colors the colormap will need to have.
+    #         If this is false, the color will be random as specified by the frame ids.
+    #         If this is a matplotlib color, cells that have a global id will show up in this color.
             
-        total_number_of_global_ids : int
-            The total number of global ids present under the current mapping. If color_by_global_id is true,
-            he function will divide the available color space into total_number_of_global_ids and then for each 
-            cell use the global_idth color in this discretization for plotting. The colors between frames 
-            will not match if this parameter is incorrectly specified.
+    #     total_number_of_global_ids : int
+    #         The total number of global ids present under the current mapping. If color_by_global_id is true,
+    #         he function will divide the available color space into total_number_of_global_ids and then for each 
+    #         cell use the global_idth color in this discretization for plotting. The colors between frames 
+    #         will not match if this parameter is incorrectly specified.
             
-        Returns
-        -------
+    #     Returns
+    #     -------
         
-        polygon_collection : matplotlib.collections.PatchCollection
-            You can plot this particular polygon collection using the line
-            my_figure.gca().add_collection(polygon_collection)
-            where my_figure is an active matplotlib figure.
+    #     polygon_collection : matplotlib.collections.PatchCollection
+    #         You can plot this particular polygon collection using the line
+    #         my_figure.gca().add_collection(polygon_collection)
+    #         where my_figure is an active matplotlib figure.
   
-        """
-        # figure properties
-        figuresize = (4,2.75)
-        font = {'size'   : 10}
-        plt.rc('font', **font)
+    #     """
+    #     # figure properties
+    #     figuresize = (4,2.75)
+    #     font = {'size'   : 10}
+    #     plt.rc('font', **font)
   
-        mesh_figure = plt.figure(figsize = figuresize)
-        polygon_collection = self.get_polygon_collection_for_negative_area_cells( color_by_global_id, total_number_of_global_ids, 
-                                                          reduced_mcs_only )
-        mesh_figure.gca().add_collection(polygon_collection)
-        mesh_figure.gca().set_aspect('equal')
-        mesh_figure.gca().autoscale_view()
-        if filename.endswith('.pdf'):
-            mesh_figure.savefig(filename, bbox_inches = 'tight')
-        else:
-            mesh_figure.savefig(filename, bbox_inches = 'tight', dpi = 300)
+    #     mesh_figure = plt.figure(figsize = figuresize)
+    #     polygon_collection = self.get_polygon_collection_for_negative_area_cells( color_by_global_id, total_number_of_global_ids, 
+    #                                                       reduced_mcs_only )
+    #     mesh_figure.gca().add_collection(polygon_collection)
+    #     mesh_figure.gca().set_aspect('equal')
+    #     mesh_figure.gca().autoscale_view()
+    #     if filename.endswith('.pdf'):
+    #         mesh_figure.savefig(filename, bbox_inches = 'tight')
+    #     else:
+    #         mesh_figure.savefig(filename, bbox_inches = 'tight', dpi = 300)
         
-    def get_polygon_collection_for_negative_area_cells( self, color_by_global_id = False, total_number_of_global_ids = None,
-                                reduced_mcs_only = False ):
-        """Helper method for plot command, allows to include mesh representations
-           in your own matplotlib plots
+    # def get_polygon_collection_for_negative_area_cells( self, color_by_global_id = False, total_number_of_global_ids = None,
+    #                             reduced_mcs_only = False ):
+    #     """Helper method for plot command, allows to include mesh representations
+    #        in your own matplotlib plots
         
-        Parameters
-        ----------
+    #     Parameters
+    #     ----------
   
-        color_by_global_id : bool or matplotlib color
-            If this is true, the color will not be selected by the frame id, but by the global id.
-            This will only work if the input parameter total_number_of_global_ids is also specified.
-            Otherwise the function will not know how many colors the colormap will need to have.
-            If this is false, the color will be random as specified by the frame ids.
-            If this is a matplotlib color, cells that have a global id will show up in this color.
+    #     color_by_global_id : bool or matplotlib color
+    #         If this is true, the color will not be selected by the frame id, but by the global id.
+    #         This will only work if the input parameter total_number_of_global_ids is also specified.
+    #         Otherwise the function will not know how many colors the colormap will need to have.
+    #         If this is false, the color will be random as specified by the frame ids.
+    #         If this is a matplotlib color, cells that have a global id will show up in this color.
         
-        total_number_of_global_ids : int
-            The total number of global ids present under the current mapping. If color_by_global_id is true,
-            he function will divide the available color space into total_number_of_global_ids and then for each 
-            cell use the global_idth color in this discretization for plotting. The colors between frames 
-            will not match if this parameter is incorrectly specified.
+    #     total_number_of_global_ids : int
+    #         The total number of global ids present under the current mapping. If color_by_global_id is true,
+    #         he function will divide the available color space into total_number_of_global_ids and then for each 
+    #         cell use the global_idth color in this discretization for plotting. The colors between frames 
+    #         will not match if this parameter is incorrectly specified.
             
-        Returns
-        -------
+    #     Returns
+    #     -------
         
-        polygon_collection : matplotlib.collections.PatchCollection
-            You can plot this particular polygon collection using the line
-            my_figure.gca().add_collection(polygon_collection)
-            where my_figure is an active matplotlib figure.
+    #     polygon_collection : matplotlib.collections.PatchCollection
+    #         You can plot this particular polygon collection using the line
+    #         my_figure.gca().add_collection(polygon_collection)
+    #         where my_figure is an active matplotlib figure.
   
-        """
-        polygon_list = []
-        if color_by_global_id == True:
-            if total_number_of_global_ids == None:
-                raise Exception("You need to provide the total_number_of_global_ids argument!")
-            else:
-                color_collection = _get_distinct_colors( total_number_of_global_ids + 1 ) 
-        elif color_by_global_id == False:
-            if self.get_maximal_frame_id() is not None:
-                color_collection = _get_distinct_colors(self.get_maximal_frame_id() + 1)
+    #     """
+    #     polygon_list = []
+    #     if color_by_global_id == True:
+    #         if total_number_of_global_ids == None:
+    #             raise Exception("You need to provide the total_number_of_global_ids argument!")
+    #         else:
+    #             color_collection = _get_distinct_colors( total_number_of_global_ids + 1 ) 
+    #     elif color_by_global_id == False:
+    #         if self.get_maximal_frame_id() is not None:
+    #             color_collection = _get_distinct_colors(self.get_maximal_frame_id() + 1)
   
-        for element in self.elements:
-            this_area = element.calculate_area()
-            if this_area < 0:
-                this_polygon = mpl.patches.Polygon([node.position for node in element.nodes],
-                                                   fill = True, edgecolor  = 'white')
-            else:
-                this_polygon = mpl.patches.Polygon([node.position for node in element.nodes],
-                                                   fill = True, edgecolor  = 'black')
-            if color_by_global_id == True:
+    #     for element in self.elements:
+    #         this_area = element.calculate_area()
+    #         if this_area < 0:
+    #             this_polygon = mpl.patches.Polygon([node.position for node in element.nodes],
+    #                                                fill = True, edgecolor  = 'white')
+    #         else:
+    #             this_polygon = mpl.patches.Polygon([node.position for node in element.nodes],
+    #                                                fill = True, edgecolor  = 'black')
+    #         if color_by_global_id == True:
   
-                if element.global_id == None:
-                    this_polygon.set_facecolor([1.0, 1.0, 1.0])
-                else:
-                    if reduced_mcs_only: 
-                        if element.is_in_reduced_mcs_next and not element.is_in_reduced_mcs_previous:
-                            this_polygon.set_facecolor('yellow')
-                        elif element.is_in_reduced_mcs_previous and not element.is_in_reduced_mcs_next:
-                            this_polygon.set_facecolor('blue')
-                        elif element.is_in_reduced_mcs_next and element.is_in_reduced_mcs_previous:
-                            this_polygon.set_facecolor('green')
-                        else:
-                            this_polygon.set_facecolor('white')
-                    else:
-                        this_polygon.set_facecolor(color_collection[element.global_id])
+    #             if element.global_id == None:
+    #                 this_polygon.set_facecolor([1.0, 1.0, 1.0])
+    #             else:
+    #                 if reduced_mcs_only: 
+    #                     if element.is_in_reduced_mcs_next and not element.is_in_reduced_mcs_previous:
+    #                         this_polygon.set_facecolor('yellow')
+    #                     elif element.is_in_reduced_mcs_previous and not element.is_in_reduced_mcs_next:
+    #                         this_polygon.set_facecolor('blue')
+    #                     elif element.is_in_reduced_mcs_next and element.is_in_reduced_mcs_previous:
+    #                         this_polygon.set_facecolor('green')
+    #                     else:
+    #                         this_polygon.set_facecolor('white')
+    #                 else:
+    #                     this_polygon.set_facecolor(color_collection[element.global_id])
   
-            elif color_by_global_id == False:
+    #         elif color_by_global_id == False:
   
-                if element.id_in_frame == None:
-                    this_polygon.set_facecolor([1.0, 1.0, 1.0])
-                else:
-                    this_polygon.set_facecolor( color_collection[element.id_in_frame] )
+    #             if element.id_in_frame == None:
+    #                 this_polygon.set_facecolor([1.0, 1.0, 1.0])
+    #             else:
+    #                 this_polygon.set_facecolor( color_collection[element.id_in_frame] )
   
-            else:
-                if element.global_id == None:
-                    this_polygon.set_facecolor([1.0, 1.0, 1.0])
-                else:
-                    this_polygon.set_facecolor(color_by_global_id)
+    #         else:
+    #             if element.global_id == None:
+    #                 this_polygon.set_facecolor([1.0, 1.0, 1.0])
+    #             else:
+    #                 this_polygon.set_facecolor(color_by_global_id)
   
-            polygon_list.append(this_polygon)
+    #         polygon_list.append(this_polygon)
   
-        polygon_collection = mpl.collections.PatchCollection(polygon_list, match_original = True)
+    #     polygon_collection = mpl.collections.PatchCollection(polygon_list, match_original = True)
         
-        return polygon_collection                
+    #     return polygon_collection                
     
 
     
-    def remove_flat_elements(self):
-        '''
-        Remove all elements of the mesh that have fewer than three nodes.
+    # def remove_flat_elements(self):
+    #     '''
+    #     Remove all elements of the mesh that have fewer than three nodes.
 
-        Returns
-        -------
-        None.
+    #     Returns
+    #     -------
+    #     None.
 
-        '''
-        element_ids_to_delete = list()
-        for this_element in self.elements:
-            # if this_element.get_num_nodes()<=2:
-            #     element_ids_to_delete.append(this_element.id_in_frame)
+    #     '''
+    #     element_ids_to_delete = list()
+    #     for this_element in self.elements:
+    #         # if this_element.get_num_nodes()<=2:
+    #         #     element_ids_to_delete.append(this_element.id_in_frame)
 
-            this_element_area = this_element.calculate_area()
-            if this_element_area <= 0: 
-                print('The problem area is ', this_element_area)
-                element_ids_to_delete.append(this_element.id_in_frame)
+    #         this_element_area = this_element.calculate_area()
+    #         if this_element_area <= 0: 
+    #             print('The problem area is ', this_element_area)
+    #             element_ids_to_delete.append(this_element.id_in_frame)
 
-        for this_element_id in element_ids_to_delete:
-            self.delete_element_with_frame_id(this_element_id)
-            print('I deleted a flat element.')
+    #     for this_element_id in element_ids_to_delete:
+    #         self.delete_element_with_frame_id(this_element_id)
+    #         print('I deleted a flat element.')
         
     def get_num_nodes(self):
         """Get the number of nodes in the mesh.
