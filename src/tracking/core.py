@@ -613,8 +613,9 @@ class PostProcessor():
         network_one = self.mesh_one.generate_network_of_unidentified_elements()
     
         self.stable_fill_in_by_adjacency()
-
-        self.resolve_division_events()
+        
+        #Do not try to resolve division events until we have fixed those functions for Python 3:
+        #self.resolve_division_events()
         self.index_global_ids()
         
         return self.mapped_ids

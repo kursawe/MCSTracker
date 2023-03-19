@@ -596,8 +596,10 @@ class Mesh():
         for edge in edges:
             cells_along_this_edge = self.find_elements_at_edge(edge)
             if len(cells_along_this_edge) > 1:
-                assert( len(cells_along_this_edge) == 2)
-                network_edges.append(cells_along_this_edge)
+                #The next line used to be assert(len(cells_along_this_edge) == 2), but we changed
+                #this to deal with incorrectly segmented histoblasts.
+                if len(cells_along_this_edge) == 2:
+                    network_edges.append(cells_along_this_edge)
              
         network = nx.Graph()
         network.add_edges_from(network_edges)
@@ -2174,8 +2176,10 @@ class Element():
             shared_elements = set.intersection( set(node.get_adjacent_element_ids() ), set(next_node.get_adjacent_element_ids()) )
             shared_elements.remove( self.id_in_frame )
             if len( shared_elements ) > 0:
-                assert(len(shared_elements) == 1)
-                all_adjacent_element_ids.append(shared_elements.pop())
+                #The next line used to be assert(len(shared_elements) == 1).
+                #We changed this to deal with incorrectly segmented histoblasts.
+                if len(shared_elements) == 1:
+                    all_adjacent_element_ids.append(shared_elements.pop())
                
         return all_adjacent_element_ids
 
