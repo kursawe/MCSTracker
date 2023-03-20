@@ -599,7 +599,12 @@ class Mesh():
                 #The next line used to be assert(len(cells_along_this_edge) == 2), but we changed
                 #this to deal with incorrectly segmented histoblasts.
                 if len(cells_along_this_edge) == 2:
-                    network_edges.append(cells_along_this_edge)
+                    
+                    #Added these lines to stop adding elements with zero area (and therefore undefined centroid) to the network.
+                    if self.get_element_with_frame_id(cells_along_this_edge[0]).calculate_area() > 0:
+                        if self.get_element_with_frame_id(cells_along_this_edge[1]).calculate_area() > 0:
+                        
+                            network_edges.append(cells_along_this_edge)
              
         network = nx.Graph()
         network.add_edges_from(network_edges)
