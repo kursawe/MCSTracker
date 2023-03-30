@@ -1880,14 +1880,12 @@ class Mesh():
         color_selection = np.linspace(0, 65535, num=65536).astype(int)
         
         #Define an array of zeroes with the same dimensions as the segmented image.
-        recoloured_image = np.zeros( ( segmented_image.shape[0], segmented_image.shape[1]),
-                                    dtype = 'uint16' ) 
+        recoloured_image = np.zeros_like(segmented_image)
         #The background pixel value must be different to the global ids.  Global ids start from 0.  Therefore, the background pixel value must not be zero.
-        recoloured_image[:]=max_global_id + 100
+        #recoloured_image[:]=max_global_id + 100
         
         #Define a helper array of zeroes with the same dimensions as the segmented image.
-        helper_image = np.zeros( ( segmented_image.shape[0], segmented_image.shape[1]),
-                                  dtype = 'uint16' )
+        helper_image = np.zeros_like(segmented_image)
         
         #Initiate a cell counter. 
         cell_counter = 0
@@ -1898,7 +1896,7 @@ class Mesh():
                 #Update the cell counter.
                 cell_counter+=1
                 #Choose from the colour selection the value equal to the global id.
-                this_color = color_selection[element.global_id]
+                this_color = element.global_id
                 #Find the id_in_frame of the element.
                 this_frame_id = element.id_in_frame
                 #Make a mask from the region of the segmented image with frame id this_frame_id.
@@ -1914,7 +1912,8 @@ class Mesh():
         recoloured_segmentation = Image.fromarray(recoloured_image)
         
         #Save the recoloured segmentation.
-        recoloured_segmentation.save(filename, 'TIFF')
+        recoloured_segmentation.save(filename)
+        
         
 
 

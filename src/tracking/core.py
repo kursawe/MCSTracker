@@ -264,7 +264,9 @@ def colour_segmented_sequence_by_global_id( sequence_path, segmented_path, out_p
     list_of_segmented_files = glob.glob( os.path.join( segmented_path , '*.tif') )
     #Sort the list of file names.
     list_of_segmented_files.sort(key=_natural_keys)
-    print(list_of_segmented_files)
+    
+    print('Colouring segmentations by global ID')
+    
     # get maximal global id
     max_global_id = 0
     for mesh_instance in mesh_sequence:
@@ -276,7 +278,7 @@ def colour_segmented_sequence_by_global_id( sequence_path, segmented_path, out_p
     if not os.path.isdir(out_path):
         os.mkdir( out_path )
     #The output will save to a folder named recoloured_segmentation, within the directory out_path.
-    recoloured_segmentation_path = os.path.join(out_path, 'recoloured_segmentation')
+    recoloured_segmentation_path = os.path.join(out_path, 'master_segmentation_sequence')
     #Make the folder out_path/recoloured_segmentation, it it does not exist already.
     if not os.path.isdir(recoloured_segmentation_path):
         os.mkdir( recoloured_segmentation_path )
@@ -287,11 +289,13 @@ def colour_segmented_sequence_by_global_id( sequence_path, segmented_path, out_p
         #Pick the file name of the segmentation corresponding to the mesh object.
         this_segmented_path = list_of_segmented_files[mesh_counter]
         #Define the file name of the corresponding recoloured segmentation (appends _recoloured_segmentation to the end of the file name of the original segmentation, such that the frame number remains identifiable).
-        out_file_name = os.path.split( this_segmented_path.replace('.tif', '_recoloured_segmentation.tiff') )[1]
+        out_file_name = os.path.split( this_segmented_path.replace('.tif', '_master.tif') )[1]
         #Define the directory to which the recoloured segmentation will save.
         recoloured_segmentation_file_path = os.path.join(recoloured_segmentation_path, out_file_name)
         #Make and save the recoloured segmentation. 
         mesh_instance.colour_segmentation_by_global_id(recoloured_segmentation_file_path, this_segmented_path, max_global_id)
+        
+        print('Coloured frame ', mesh_counter)
 
 class DataCollector():
     """A class for analysing tracked sequences."""
