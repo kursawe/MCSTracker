@@ -43,6 +43,103 @@ def track(mesh_one, mesh_two):
     
     return mapped_ids
 
+def track_and_write_sequence_2(input_path, output_path, start_number = 1, number_meshes = None):
+    """Reads a sequence and writes the tracked data into consecutive meshes
+    
+    Cells that are present in multiple frames will have the same global ids,
+    and each other cell will have a distinct non-recurring global id.
+
+    Parameters
+    ----------
+    
+    input_path : string
+        filename of seedwater-segmented data frames, without the file-endings
+        and numberings
+        
+    output_path : string
+        filename where the output should be saved, without file ending
+        this name will be extended with a number and .mesh for each segmented
+        frame
+        
+    start_number : int
+        mesh number to be started with (indexing starts at one)
+        
+    number_meshes : int
+        index of the last mesh we want to track (indexing starts at one)
+    """
+
+    mesh_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)
+    #previous_sequence = copy.deepcopy(mesh_sequence)
+    #next_sequence = copy.deepcopy(mesh_sequence)
+    
+    #Changed these lines to copy.deepcopy(mesh_sequence) to try to speed up reading in the files.
+    previous_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)   
+    next_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)
+    
+    # give global ids to the first mesh
+    global_ids = []
+    for counter, element in enumerate(mesh_sequence[0].elements):  
+        element.global_id = counter
+        global_ids.append(counter)
+        element.is_in_reduced_mcs_previous = False
+    mesh_sequence[0].index_global_ids()
+    
+    # track all consecutive time frames individually
+    step_sequence = []
+    
+    for counter, this_mesh in enumerate(mesh_sequence):
+        if counter > 0:
+            previous_mesh = previous_sequence[counter -1]
+            corresponding_mesh = next_sequence[counter]
+            try:
+                track(previous_mesh, corresponding_mesh)
+                print('Tracked mesh ', counter)
+            except FirstIndexException:
+                print("Could not find first index in tracking step " + str(counter))
+            step_sequence.append([previous_mesh, corresponding_mesh])
+            
+            
+
+            if counter == 0:
+                corresponding_mesh_next_step = step_sequence[counter][0]
+                for element_counter, element in enumerate(this_mesh.elements):
+                    element.is_in_reduced_mcs_next = corresponding_mesh_next_step.elements[element_counter].is_in_reduced_mcs_next
+            if counter > 0:
+                previous_mesh = step_sequence[counter - 1][0]
+                corresponding_mesh = step_sequence[counter - 1][1]
+    
+                if counter < len(step_sequence):
+                    corresponding_mesh_next_step = step_sequence[counter][0]
+    
+                for element_counter, element in enumerate(this_mesh.elements):
+                    corresponding_element = corresponding_mesh.get_element_with_frame_id(element.id_in_frame)
+                    this_global_id = corresponding_element.global_id
+                    if this_global_id is None:
+                        new_global_id = max(global_ids) + 1
+                        global_ids.append( max(global_ids) + 1 )
+                        element.global_id = new_global_id
+                        element.is_new = True
+                    else:
+                        previous_frame_id = previous_mesh.get_element_with_global_id(this_global_id).id_in_frame
+                        previous_global_id = mesh_sequence[counter - 1].get_element_with_frame_id(previous_frame_id).global_id
+                        element.global_id = previous_global_id
+                    
+                    try:
+                        element.is_in_reduced_mcs_previous = corresponding_element.is_in_reduced_mcs_previous
+                    except:
+                        element.is_in_reduced_mcs_previous = False
+    
+                    if counter < len(step_sequence):
+                        try:
+                            element.is_in_reduced_mcs_next = corresponding_mesh_next_step.elements[element_counter].is_in_reduced_mcs_next
+                        except(AttributeError):
+                            element.is_in_reduced_mcs_next = False
+                    else:
+                        element.is_in_reduced_mcs_next = False
+                this_mesh.index_global_ids()
+                this_file_name = output_path + str(start_number + counter - 1) + '.mesh'
+                this_mesh.save(this_file_name) 
+
 def track_and_write_sequence(input_path, output_path, start_number = 1, number_meshes = None):
     """Reads a sequence and writes the tracked data into consecutive meshes
     
