@@ -1264,7 +1264,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             second entry is a frame id in the second mesh.
         """
         
-
+        print('I have entered the add new seeds function!')
         first_vertices = self.get_vertices_ordered_by_number_of_matches( tracking_state )
         
         first_match_not_yet_found = True
@@ -1298,6 +1298,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                     if vertex_is_mapped_equally_in_all_largest_mappings:
                         first_match_not_yet_found = False
                         first_mapping = [vertex, self.network_two_index_lookup[image_id]]
+                        print('found a first mapping, yay!')
                         break
                 
         if first_match_not_yet_found:
@@ -1319,10 +1320,20 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                         if vertex_is_mapped_equally_in_all_largest_mappings:
                             first_match_not_yet_found = False
                             first_mapping = [vertex, self.network_two_index_lookup[image_id]]
+                            print('found a first mapping on second try, phew!')
                             break
-
+        
+        if first_match_not_yet_found:
+            pass
+            # loop over all cells in the first mesh
+            # loop over all mapping candidates in the second mesh
+            # calculate overlap between the mesh elements
+            # if the overlap is sufficiently large (>90%?)
+            # use that pairing as a first mapping
+        
         if first_match_not_yet_found:
             first_tracking_state = tracking_state
+            print('Darn, I could not find anything')
         else:
             first_tracking_state = self.extend_tracking_state(tracking_state, 
                                                               first_mapping[0], first_mapping[1])
