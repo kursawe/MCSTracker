@@ -12,6 +12,8 @@ import warnings
 import pickle
 import sys
 import cv2
+import shapely
+import shapely.validation
 
 import matplotlib as mpl
 mpl.use('Agg')
@@ -374,6 +376,7 @@ class Mesh():
             if color_by_global_id == True:
 
                 if element.global_id == None:
+                # if element.global_id == None or getattr(element, 'is_new', False):
                     this_polygon.set_facecolor([1.0, 1.0, 1.0])
                 else:
                     if reduced_mcs_only: 
@@ -2375,6 +2378,46 @@ class Node():
         self.__eq__() equality method
         """
         return not self.__eq__(other)
+    
+def calculate_overlap_between_elements(element_one, element_two):
+    """Calculates the area of the overlap between two elements
+    
+    Parameters
+    ----------
+    
+    element_one : Element
+        first of the two considered elements
+        
+    element_two : Element
+        second of the two considered elements
+        
+    Returns
+    -------
+    
+    area : float
+        area of the overlap between the two elements
+    """
+    # make a shapely polygon of the first element:
+       # make a list of coordinates from the nodes
+       # plug this into the polygon constructor 
+    list_of_polygon_corners_1 = []
+    for node in element_one.nodes:
+        list_of_polygon_corners_1.append(node.position)
+    shapely_polygon_one = shapely.geometry.Polygon(np.array(list_of_polygon_corners_1))
+    shapely_polygon_one = shapely.validation.make_valid(shapely_polygon_one)
+    
+
+    list_of_polygon_corners_2 = []
+    for node in element_two.nodes:
+        list_of_polygon_corners_2.append(node.position)
+    shapely_polygon_two = shapely.geometry.Polygon(np.array(list_of_polygon_corners_2))
+    shapely_polygon_two = shapely.validation.make_valid(shapely_polygon_two)
+ 
+    shapely_intersection_polygon = shapely_polygon_one.intersection(shapely_polygon_two)
+    
+    intersection_area = shapely_intersection_polygon.area
+
+    return intersection_area
     
 def _get_distinct_colors(number_of_colors):
     """Returns number_of_colors different colors

@@ -8,6 +8,7 @@ import networkx as nx
 import itertools
 import time
 import math
+import mesh
    
 class KrissinelMaximumCommonSubgraphFinder:
     """A helper class for finding maximum common subgraphs
@@ -1040,7 +1041,7 @@ class FirstIndexException(Exception):
         Exception.__init__(self, "First index could not be found")
 
 class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
-    def __init__(self, mesh_one, mesh_two):
+    def __init__(self, mesh_one, mesh_two, use_geometry = False):
         """A helper class to find maximum common subgraphs. Inherits from
         ConnectedMaximumCommonSubgraphFinder and adapts it to deal with connected subgraphs
         of planar topologies.
@@ -1054,7 +1055,38 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         KrissinelMaximumCommonSubgraphFinder.__init__()
         """
         ConnectedMaximumCommonSubgraphFinder.__init__( self, mesh_one, mesh_two, 0.0 )
+        self.geometrically_tracked_list = []
+        self.use_geometry = use_geometry
+        if self.use_geometry:
+            self.fill_tracking_state_by_geometry()
+        
 
+    def fill_tracking_state_by_geometry(self):
+        """force cells into the mcs tracking based on their overlap.
+        
+        no parameters or return values.
+        """
+        for node_one in list(self.network_one):
+            #find closest node in network two
+            distance = float("inf")
+            for node_two_index, node_two in enumerate(list(self.network_two)):
+                this_distance = np.linalg.norm(self.network_one.nodes[node_one]['position'] -
+                                                                    self.network_two.nodes[node_two]['position'] ) 
+                if this_distance<distance:
+                    closest_node = node_two
+                    distance = this_distance
+
+            element_one = self.mesh_one.get_element_with_frame_id(node_one)
+            element_two = self.mesh_two.get_element_with_frame_id(closest_node)
+            overlap_area = mesh.calculate_overlap_between_elements(element_one, element_two)
+            relative_overlap_forward = overlap_area/element_one.calculate_area()
+            relative_overlap_backward = overlap_area/element_two.calculate_area()
+            if relative_overlap_backward > 0.8 and relative_overlap_forward > 0.8:
+                first_index = self.network_one_index_lookup[node_one]
+                second_index = self.network_two_index_lookup[closest_node]
+                self.initial_tracking_state = self.extend_tracking_state(self.initial_tracking_state, 
+                                                                         first_index, second_index)
+                self.geometrically_tracked_list.append(node_one)
 
     def find_maximum_common_subgraph(self):
         """Runs the backtracking algorithm to find the maximum
@@ -1264,7 +1296,6 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             second entry is a frame id in the second mesh.
         """
         
-        print('I have entered the add new seeds function!')
         first_vertices = self.get_vertices_ordered_by_number_of_matches( tracking_state )
         
         first_match_not_yet_found = True
@@ -1298,7 +1329,6 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                     if vertex_is_mapped_equally_in_all_largest_mappings:
                         first_match_not_yet_found = False
                         first_mapping = [vertex, self.network_two_index_lookup[image_id]]
-                        print('found a first mapping, yay!')
                         break
                 
         if first_match_not_yet_found:
@@ -1320,20 +1350,38 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                         if vertex_is_mapped_equally_in_all_largest_mappings:
                             first_match_not_yet_found = False
                             first_mapping = [vertex, self.network_two_index_lookup[image_id]]
-                            print('found a first mapping on second try, phew!')
                             break
         
         if first_match_not_yet_found:
-            pass
             # loop over all cells in the first mesh
+            for vertex in first_vertices:
             # loop over all mapping candidates in the second mesh
+                if self.vertex_far_from_boundary(vertex):
+                    possible_images = self.get_mappable_vertices(tracking_state, vertex)
+                    for image in possible_images:
+                        # get the element with id 'vertex' from first mesh
+                        vertex_id = list(self.network_one)[vertex]
+                        image_id = list(self.network_two)[image]
+                        element_one = self.mesh_one.get_element_with_frame_id(vertex_id)
+                        element_two = self.mesh_two.get_element_with_frame_id(image_id)
+                        overlap_area = mesh.calculate_overlap_between_elements(element_one, element_two)
+                        relative_overlap_forward = overlap_area/element_one.calculate_area()
+                        relative_overlap_backward = overlap_area/element_two.calculate_area()
+                        if relative_overlap_backward > 0.9 and relative_overlap_forward > 0.9:
+                            first_match_not_yet_found = False
+                            first_mapping = [vertex, image]
+                            self.geometrically_tracked_list.append(vertex_id)
+                            break
+
+
+                        # get the element with id 'image' from second mesh
+                        # calculate the overlap
             # calculate overlap between the mesh elements
             # if the overlap is sufficiently large (>90%?)
             # use that pairing as a first mapping
         
         if first_match_not_yet_found:
             first_tracking_state = tracking_state
-            print('Darn, I could not find anything')
         else:
             first_tracking_state = self.extend_tracking_state(tracking_state, 
                                                               first_mapping[0], first_mapping[1])
@@ -1601,6 +1649,8 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
         indices_to_be_inspected = set(reverse_indices + indices_of_vertices_that_are_adjacent_to_vertex_one.tolist())
 
         new_tracking_state = tracking_state
+        
+        image_id = self.network_two_node_iterator[vertex_two]
         
         new_tracking_state.id_map[self.network_one_node_iterator[vertex_one]] = self.network_two_node_iterator[vertex_two]
         

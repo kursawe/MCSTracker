@@ -14,7 +14,7 @@ import warnings
 #from networkx.algorithms.components.connected import connected_component_subgraphs
 # # # # # # # # # from networkx import connected_component_subgraphs
 
-def track(mesh_one, mesh_two):
+def track(mesh_one, mesh_two, use_geometry = False):
     """Find a mapping between the cell ids in both frames and assigns the global ids accordingly.
     
     Parameters
@@ -32,10 +32,10 @@ def track(mesh_one, mesh_two):
     mapped_ids : the ids of elements that were identified in both meshes
     """
     
-    subgraph_finder = LocalisedSubgraphFinder(mesh_one, mesh_two)
+    subgraph_finder = LocalisedSubgraphFinder(mesh_one, mesh_two, use_geometry)
     subgraph_finder.find_maximum_common_subgraph()
 
-    post_processor = PostProcessor(mesh_one, mesh_two, subgraph_finder.largest_mappings)
+    post_processor = PostProcessor(mesh_one, mesh_two, subgraph_finder.largest_mappings, subgraph_finder.geometrically_tracked_list, use_geometry)
     post_processor.index_global_ids_from_largest_mappings()
     
     post_processor.tidy_current_mapping()
@@ -97,8 +97,6 @@ def track_and_write_sequence_2(input_path, output_path, start_number = 1, number
             except FirstIndexException:
                 print("Could not find first index in tracking step " + str(counter))
             step_sequence.append([previous_mesh, corresponding_mesh])
-            
-            
 
             if counter == 0:
                 corresponding_mesh_next_step = step_sequence[counter][0]
@@ -140,7 +138,7 @@ def track_and_write_sequence_2(input_path, output_path, start_number = 1, number
                 this_file_name = output_path + str(start_number + counter - 1) + '.mesh'
                 this_mesh.save(this_file_name) 
 
-def track_and_write_sequence(input_path, output_path, start_number = 1, number_meshes = None):
+def track_and_write_sequence(input_path, output_path, start_number = 1, number_meshes = None, use_geometry = False):
     """Reads a sequence and writes the tracked data into consecutive meshes
     
     Cells that are present in multiple frames will have the same global ids,
@@ -180,7 +178,7 @@ def track_and_write_sequence(input_path, output_path, start_number = 1, number_m
             previous_mesh = previous_sequence[counter -1]
             corresponding_mesh = next_sequence[counter]
             try:
-                track(previous_mesh, corresponding_mesh)
+                track(previous_mesh, corresponding_mesh, use_geometry)
                 print('Tracked mesh ', counter)
             except FirstIndexException:
                 print("Could not find first index in tracking step " + str(counter))
@@ -639,7 +637,7 @@ class StepDataCollector():
 
 class PostProcessor():
     """An object to postprocess a maximum common subgraph and identify rearrangements"""
-    def __init__(self, mesh_one, mesh_two, largest_mappings ):
+    def __init__(self, mesh_one, mesh_two, largest_mappings, geometrically_tracked_list = [], use_geometry = False ):
         """The constructor of the post processor
         
         Parameters
@@ -653,6 +651,12 @@ class PostProcessor():
             
         largest_mappings : list of dictionaries
             the list of equivalent largest mappings that the subgraph finder returned
+            
+        geometrically_tracked_list : list of ints
+            The list of cells that have been tracked geometrically. These are not intended to be removed from the mcs. 
+            
+        use_geometry : bool
+            if true, then after tracking has completed attempt to resolve remaining untracked cells by maximising overlap.
         """
         self.largest_mappings = largest_mappings
         self.mapped_ids = []
@@ -667,6 +671,9 @@ class PostProcessor():
         self.preliminary_mappings = {}
         """A dictionary of the same style as TrackingState.id_map. Keys are mesh_one frame ids
         and values are mesh_two frame_ids"""
+        
+        self.geometrically_tracked_list = geometrically_tracked_list
+        self.use_geometry = use_geometry
         
     def get_multiple_images( self, list_of_arguments, preliminary_mapping = {} ):
         """Get a list of all images of the given arguments.
@@ -715,12 +722,39 @@ class PostProcessor():
     
         self.stable_fill_in_by_adjacency()
         
+        if self.use_geometry:
+            self.fill_by_geometry()
+        
         #Do not try to resolve division events until we have fixed those functions for Python 3:
-        #self.resolve_division_events()
+        self.resolve_division_events()
         self.index_global_ids()
         
         return self.mapped_ids
    
+    def fill_by_geometry(self):
+        for element_one in self.mesh_one.elements:
+            if element_one.id_in_frame not in self.preliminary_mappings:
+                # find closest unmapped cell
+                distance = float("inf")
+                closest_element = None
+                centroid_one = element_one.calculate_centroid()
+                for element_two in self.mesh_two.elements:
+                    if element_two not in self.preliminary_mappings.values(): 
+                        centroid_two = element_two.calculate_centroid()
+                        this_distance = np.linalg.norm(centroid_one - centroid_two)
+                        if this_distance < distance:
+                            distance = this_distance
+                            closest_element = element_two.id_in_frame 
+                
+                # calculate overlap area
+                if closest_element is not None: 
+                    overlap_area = mesh.calculate_overlap_between_elements(element_one, element_two)
+                    relative_overlap_forward = overlap_area/element_one.calculate_area()
+                    relative_overlap_backward = overlap_area/element_two.calculate_area()
+                    # add to prelminary mapping if possible
+                    if relative_overlap_backward > 0.5 and relative_overlap_forward > 0.5:
+                        self.preliminary_mappings[element_one.id_in_frame] = element_two.id_in_frame
+
     def stable_fill_in_by_adjacency(self):
         """Fill in untracked elements. 
         
@@ -1179,7 +1213,7 @@ class PostProcessor():
             if element.global_id is not None:
 #                 if element.global_id == 166:
 #                     import pdb; pdb.set_trace()
-                if self.is_isolated( element ):
+                if self.is_isolated( element ) and (element.id_in_frame not in self.geometrically_tracked_list):
                     isolated_vector[ element_counter ] = True
                 mapped_neighbours = self.mesh_one.get_already_mapped_adjacent_element_ids( element.id_in_frame )
                 if len(mapped_neighbours) == 2:
@@ -1200,8 +1234,9 @@ class PostProcessor():
         for connected_component in connected_components_in_network_one:
             if len(connected_component) < 10:
                 for frame_id in connected_component:
-                    index = self.mesh_one.frame_id_dictionary[frame_id]
-                    isolated_vector[index] = True
+                    if frame_id not in self.geometrically_tracked_list:
+                        index = self.mesh_one.frame_id_dictionary[frame_id]
+                        isolated_vector[index] = True
   
         self.remove_global_ids_by_boolean_mask(isolated_vector)
 
@@ -1349,8 +1384,8 @@ class PostProcessor():
         for global_id, frame_one_id in enumerate(preserved_mappings):
             self.mesh_one.get_element_with_frame_id(frame_one_id).global_id = global_id
             self.mesh_two.get_element_with_frame_id(self.largest_mappings[0][frame_one_id]).global_id = global_id
-#             if global_id == 166:
-#                 import pdb; pdb.set_trace();
+            # if global_id == 15:
+                # import pdb; pdb.set_trace();
             self.mapped_ids.append(global_id)
 
         self.mesh_two.index_global_ids()
