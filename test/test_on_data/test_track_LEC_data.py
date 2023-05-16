@@ -38,7 +38,10 @@ class TestTrackLECData(unittest.TestCase):
                       total_number_of_global_ids = len(tracked_ids) )
          
     def test_track_raw_segmentation_1(self): 
-
+        
+        if not os.path.isdir(path.join(dirname(__file__),'output','tracked_LEC_segmentation_1/')):
+            os.mkdir(path.join(dirname(__file__),'output','tracked_LEC_segmentation_1/'))
+                     
         tracking.track_and_write_sequence(path.join(dirname(__file__),'data','LEC_segmentation_1'), path.join(dirname(__file__),'output','tracked_LEC_segmentation_1/'),
                                         use_geometry=True)
                                         # use_geometry=True, number_meshes= 2)
