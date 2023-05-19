@@ -51,6 +51,21 @@ class TestTrackLECData(unittest.TestCase):
                                 path.join(dirname(__file__),'data','LEC_segmentation_1/'),
                                 path.join(dirname(__file__),'output','tracked_LEC_segmentation_1/'))
 
+    def test_track_raw_segmentation_2(self): 
+        
+        if not os.path.isdir(path.join(dirname(__file__),'output','tracked_LEC_segmentation_2/')):
+            os.mkdir(path.join(dirname(__file__),'output','tracked_LEC_segmentation_2/'))
+                     
+        tracking.track_and_write_sequence(path.join(dirname(__file__),'data','LEC_segmentation_2'), path.join(dirname(__file__),'output','tracked_LEC_segmentation_2/'),
+                                        use_geometry=True)
+                                        # use_geometry=True, number_meshes= 2)
+
+        # tracking.plot_tracked_sequence(path.join(dirname(__file__),'output','tracked_LEC_segmentation_1/'), 
+                                # path.join(dirname(__file__),'data', 'LEC_segmentation_1_raw_images/'),
+                                # path.join(dirname(__file__),'data','LEC_segmentation_1/'),
+                                # path.join(dirname(__file__),'output','tracked_LEC_segmentation_1/'))
+
+ 
     def xest_track_other_frames(self):
 
         my_path_1 = os.path.join(dirname(__file__),'..','test_tracking','data','AL151222_Job6_0.mesh')

@@ -733,7 +733,7 @@ class PostProcessor():
    
     def fill_by_geometry(self):
         for element_one in self.mesh_one.elements:
-            if element_one.id_in_frame not in self.preliminary_mappings:
+            if element_one.id_in_frame not in self.preliminary_mappings and element_one.global_id not in self.mapped_ids:
                 # find closest unmapped cell
                 distance = float("inf")
                 closest_element = None
@@ -753,7 +753,7 @@ class PostProcessor():
                     relative_overlap_backward = overlap_area/element_two.calculate_area()
                     # add to prelminary mapping if possible
                     if relative_overlap_backward > 0.5 and relative_overlap_forward > 0.5:
-                        self.preliminary_mappings[element_one.id_in_frame] = element_two.id_in_frame
+                        self.extend_preliminary_mapping(element_one.id_in_frame, element_two.id_in_frame)
 
     def stable_fill_in_by_adjacency(self):
         """Fill in untracked elements. 
