@@ -164,12 +164,12 @@ def track_and_write_sequence(input_path, output_path, start_number = 1, number_m
     """
 
     mesh_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)
-    #previous_sequence = copy.deepcopy(mesh_sequence)
-    #next_sequence = copy.deepcopy(mesh_sequence)
+    previous_sequence = copy.deepcopy(mesh_sequence)
+    next_sequence = copy.deepcopy(mesh_sequence)
     
     #Changed these lines to copy.deepcopy(mesh_sequence) to try to speed up reading in the files.
-    previous_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)   
-    next_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)
+    # previous_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)   
+    # next_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)
     
     # track all consecutive time frames individually
     step_sequence = []
@@ -726,7 +726,7 @@ class PostProcessor():
             self.fill_by_geometry()
         
         #Do not try to resolve division events until we have fixed those functions for Python 3:
-        self.resolve_division_events()
+        # self.resolve_division_events()
         self.index_global_ids()
         
         return self.mapped_ids
@@ -752,7 +752,8 @@ class PostProcessor():
                     relative_overlap_forward = overlap_area/element_one.calculate_area()
                     relative_overlap_backward = overlap_area/element_two.calculate_area()
                     # add to prelminary mapping if possible
-                    if relative_overlap_backward > 0.5 and relative_overlap_forward > 0.5:
+                    if (relative_overlap_backward > 0.5 and relative_overlap_forward > 0.5 and
+                        element_two.id_in_frame not in self.preliminary_mappings.values()):
                         self.extend_preliminary_mapping(element_one.id_in_frame, element_two.id_in_frame)
 
     def stable_fill_in_by_adjacency(self):
@@ -916,8 +917,9 @@ class PostProcessor():
         centroid_position = self.mesh_two.get_element_with_frame_id(mapping_candidate).calculate_centroid()
         new_centroid_position = np.array(centroid_position)
         new_centroid_position[1] = 326 - centroid_position[1]
-
+        
         assert(next_frame_id not in self.preliminary_mappings)
+        assert(mapping_candidate not in self.preliminary_mappings.values())
         self.preliminary_mappings[next_frame_id] = mapping_candidate
         new_neighbour_ids = self.mesh_one.get_not_yet_mapped_shared_neighbour_ids( [next_frame_id],
                                                                                    self.preliminary_mappings.keys() )
