@@ -193,12 +193,48 @@ def read_sequence_from_data(folder_name, start_number = 1, number_meshes = None)
     
     folder_name : string
         folder that contains the segmented .tif files.    
+    
+    start_number : int
+        number of first file to be considered
+
+    number_meshes : int
+        number of last file to be considered
 
     Returns
     -------
    
     mesh_sequence : list of Mesh instances
         elements of the list are instances of Mesh
+    """
+   
+    list_of_files = get_segmentation_list_in_folder(folder_name, start_number, number_meshes)
+
+    mesh_sequence = []
+    for filename in list_of_files:
+        print("reading" + str(filename))
+        mesh_sequence.append( read_frame_from_data(filename) )
+    return mesh_sequence   
+
+def get_segmentation_list_in_folder(folder_name, start_number = 1, number_meshes = None):
+    """Get a sorted list of .tif file names in the provided folder
+    
+    Parameters:
+    -----------
+    
+    folder_name : string
+        path to the folder that contains
+
+    start_number : int
+        number of first file to be considered
+
+    number_meshes : int
+        number of last file to be considered
+    
+    Returns:
+    --------
+    
+    list_of_files : list of strings
+        ordered list of all .tif files in the provided folder
     """
     list_of_files = glob.glob(path.join(folder_name, '*.tif*'))
     list_of_files.sort(key=_natural_keys)
@@ -207,13 +243,9 @@ def read_sequence_from_data(folder_name, start_number = 1, number_meshes = None)
         list_of_files = list_of_files[(start_number -1):number_meshes]
     else:
         list_of_files = list_of_files[(start_number -1):]
-
-    mesh_sequence = []
-    for filename in list_of_files:
-        print("reading" + str(filename))
-        mesh_sequence.append( read_frame_from_data(filename) )
-    return mesh_sequence   
-
+        
+    return list_of_files
+ 
 def read_frame_from_data(filename):
     """Reads a seedwater output segmented .tif files and transforms
        it into a mesh object, discarding boundary cells

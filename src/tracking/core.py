@@ -163,27 +163,27 @@ def track_and_write_sequence(input_path, output_path, start_number = 1, number_m
         index of the last mesh we want to track (indexing starts at one)
     """
 
-    mesh_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)
-    previous_sequence = copy.deepcopy(mesh_sequence)
-    next_sequence = copy.deepcopy(mesh_sequence)
+    ## here, get a mesh_name_sequence
+    file_sequence = mesh.get_segmentation_list_in_folder(input_path,start_number,number_meshes)
+    mesh_sequence = []
+    previous_sequence = []
+    next_sequence = []
+    # mesh_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)
+    # previous_sequence = copy.deepcopy(mesh_sequence)
+    # next_sequence = copy.deepcopy(mesh_sequence)
     
     #Changed these lines to copy.deepcopy(mesh_sequence) to try to speed up reading in the files.
     # previous_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)   
     # next_sequence = mesh.read_sequence_from_data(input_path, start_number, number_meshes)
     
     # track all consecutive time frames individually
-    step_sequence = []
-    for counter, this_mesh in enumerate(mesh_sequence):
-        if counter > 0:
-            previous_mesh = previous_sequence[counter -1]
-            corresponding_mesh = next_sequence[counter]
-            try:
-                track(previous_mesh, corresponding_mesh, use_geometry)
-                print('Tracked mesh ', counter)
-            except FirstIndexException:
-                print("Could not find first index in tracking step " + str(counter))
-            step_sequence.append([previous_mesh, corresponding_mesh])
-    
+    ## read the first entry of the sequence
+    print('reading ' + file_sequence[0])
+    mesh_sequence.append(mesh.read_frame_from_data(file_sequence[0]))
+    next_sequence.append(copy.deepcopy(mesh_sequence[0]))
+    ## fill in the global ids
+    current_untracked_mesh = copy.deepcopy(mesh_sequence[0])
+
     # give global ids to the first mesh
     global_ids = []
     for counter, element in enumerate(mesh_sequence[0].elements):  
@@ -192,21 +192,24 @@ def track_and_write_sequence(input_path, output_path, start_number = 1, number_m
         element.is_in_reduced_mcs_previous = False
     mesh_sequence[0].index_global_ids()
 
-    # trace global ids through all the meshes, making new ones if necessary
-    for counter, this_mesh in enumerate(mesh_sequence):
-        if counter == 0:
-            corresponding_mesh_next_step = step_sequence[counter][0]
-            for element_counter, element in enumerate(this_mesh.elements):
-                element.is_in_reduced_mcs_next = corresponding_mesh_next_step.elements[element_counter].is_in_reduced_mcs_next
+    ## set the is_in_next_blabla_variable for this first mesh
+    for counter, this_file_name in enumerate(file_sequence):
         if counter > 0:
-            previous_mesh = step_sequence[counter - 1][0]
-            corresponding_mesh = step_sequence[counter - 1][1]
-
-            if counter < len(step_sequence):
-                corresponding_mesh_next_step = step_sequence[counter][0]
-
+            previous_mesh = current_untracked_mesh
+            ## read this one in
+            print('reading ' + this_file_name)
+            mesh_sequence.append(mesh.read_frame_from_data(this_file_name))
+            current_mesh = copy.deepcopy(mesh_sequence[counter])
+            current_untracked_mesh = copy.deepcopy(mesh_sequence[counter])
+            try:
+                track(previous_mesh, current_mesh, use_geometry)
+                print('Tracked mesh ', counter)
+            except FirstIndexException:
+                print("Could not find first index in tracking step " + str(counter))
+            ## try to assign global id on mesh according to tracking
+            this_mesh = mesh_sequence[-1]
             for element_counter, element in enumerate(this_mesh.elements):
-                corresponding_element = corresponding_mesh.get_element_with_frame_id(element.id_in_frame)
+                corresponding_element = current_mesh.get_element_with_frame_id(element.id_in_frame)
                 this_global_id = corresponding_element.global_id
                 if this_global_id is None:
                     new_global_id = max(global_ids) + 1
@@ -222,20 +225,24 @@ def track_and_write_sequence(input_path, output_path, start_number = 1, number_m
                     element.is_in_reduced_mcs_previous = corresponding_element.is_in_reduced_mcs_previous
                 except:
                     element.is_in_reduced_mcs_previous = False
-
-                if counter < len(step_sequence):
+                if counter == (len(file_sequence) -1):
+                    element.is_in_reduced_mcs_next = False
+                
+                # make sure the global ids are internally indexed
+                this_mesh.index_global_ids()
+                # now save the mesh
+                this_saving_file_name = output_path + str(start_number + counter - 1) + '.mesh'
+                this_mesh.save(this_saving_file_name)
+                # now include some shenanigans to set is_in_reduced_mcs_next
+                previously_saved_mesh = mesh_sequence[counter -1]
+                for element_counter, element in enumerate(previously_saved_mesh.elements):
                     try:
-                        element.is_in_reduced_mcs_next = corresponding_mesh_next_step.elements[element_counter].is_in_reduced_mcs_next
+                        element.is_in_reduced_mcs_next = previous_mesh.elements[element_counter].is_in_reduced_mcs_next
                     except(AttributeError):
                         element.is_in_reduced_mcs_next = False
-                else:
-                    element.is_in_reduced_mcs_next = False
-            this_mesh.index_global_ids()
-        
-    #now, save the mesh sequence
-    for counter, this_mesh in enumerate(mesh_sequence):
-        this_file_name = output_path + str(start_number + counter - 1) + '.mesh'
-        this_mesh.save(this_file_name)
+                # now save the mesh again
+                this_old_saving_file_name = output_path + str(start_number + counter - 2) + '.mesh'
+                previously_saved_mesh.save(this_old_saving_file_name)
 
 def analyse_tracked_sequence(input_path):
     """collect summary statistics on tracked data
@@ -314,7 +321,6 @@ def plot_tracked_sequence( sequence_path, image_path, segmented_path, out_path )
 
     for mesh_counter, mesh_instance in enumerate( mesh_sequence ):
         this_image_path = list_of_image_files[mesh_counter]
-        print(list_of_segmented_files)
         this_segmented_path = list_of_segmented_files[mesh_counter]
         out_file_name = os.path.split( this_image_path.replace('.tif', '_overlay.png') )[1]
 
