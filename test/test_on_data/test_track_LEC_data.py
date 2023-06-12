@@ -65,7 +65,7 @@ class TestTrackLECData(unittest.TestCase):
                                 # path.join(dirname(__file__),'data','LEC_segmentation_1/'),
                                 # path.join(dirname(__file__),'output','tracked_LEC_segmentation_1/'))
 
-    def test_track_full_data_set_no_histoblasts(self): 
+    def xest_track_full_data_set_no_histoblasts(self): 
         
         if not os.path.isdir(path.join(dirname(__file__),'output','tracked_full_LEC_segmentation/')):
             os.mkdir(path.join(dirname(__file__),'output','tracked_full_LEC_segmentation/'))
@@ -86,7 +86,7 @@ class TestTrackLECData(unittest.TestCase):
                                 path.join(lec_data_path,'LECs_only','test_sequence_no_histoblasts'),
                                 path.join(dirname(__file__),'output','tracked_full_LEC_segmentation'))
 
-    def xest_track_full_data_set_with_histoblasts(self): 
+    def test_track_full_data_set_with_histoblasts(self): 
         sys.setrecursionlimit(40000)
         if not os.path.isdir(path.join(dirname(__file__),'output','tracked_full_LEC_segmentation_w_histoblasts/')):
             os.mkdir(path.join(dirname(__file__),'output','tracked_full_LEC_segmentation_w_histoblasts/'))
@@ -97,9 +97,10 @@ class TestTrackLECData(unittest.TestCase):
         # that every user can define their own path
         lec_data_path = os.getenv('LECPATH')
         tracking.track_and_write_sequence(path.join(lec_data_path,'with_histoblasts','test_sequence'), 
-                                          path.join(dirname(__file__),'output','tracked_full_LEC_segmentation_w_histoblasts/'),
-                                        # use_geometry=True)
-                                        use_geometry=True, start_number=1, number_meshes=3)
+                                         path.join(dirname(__file__),'output','tracked_full_LEC_segmentation_w_histoblasts/'),
+                                    #    use_geometry=True)
+                                         use_geometry=True, start_number=46)
+                                        #  use_geometry=True, start_number=46, number_meshes=3)
                                         # use_geometry=True, number_meshes= 2)
 
         tracking.plot_tracked_sequence(path.join(dirname(__file__),'output','tracked_full_LEC_segmentation_w_histoblasts/'), 

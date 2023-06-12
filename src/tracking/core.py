@@ -199,8 +199,10 @@ def track_and_write_sequence(input_path, output_path, start_number = 1, number_m
             ## read this one in
             print('reading ' + this_file_name)
             mesh_sequence.append(mesh.read_frame_from_data(this_file_name))
-            current_mesh = copy.deepcopy(mesh_sequence[counter])
-            current_untracked_mesh = copy.deepcopy(mesh_sequence[counter])
+            current_mesh = mesh.read_frame_from_data(this_file_name)
+            # current_mesh = copy.deepcopy(mesh_sequence[counter])
+            current_untracked_mesh = mesh.read_frame_from_data(this_file_name)
+            # current_untracked_mesh = copy.deepcopy(mesh_sequence[counter])
             try:
                 track(previous_mesh, current_mesh, use_geometry)
                 print('Tracked mesh ', counter)
