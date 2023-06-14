@@ -266,7 +266,7 @@ def analyse_tracked_sequence(input_path):
     
     return DataCollector(mesh_sequence)
 
-def plot_tracked_sequence( sequence_path, image_path, segmented_path, out_path ):
+def plot_tracked_sequence( sequence_path, image_path, segmented_path, out_path, start_number = 1, tracked_meshes = None ):
     """Plot a tracked sequence of meshes.
     
     This creates three types of plots for the entire sequence.  
@@ -295,9 +295,19 @@ def plot_tracked_sequence( sequence_path, image_path, segmented_path, out_path )
     
     list_of_image_files = glob.glob( os.path.join( image_path , '*.tif') )
     list_of_image_files.sort(key=_natural_keys)
+    
+    if tracked_meshes != None:
+        list_of_image_files = list_of_image_files[(start_number -1):tracked_meshes]
+    else:
+        list_of_image_files = list_of_image_files[(start_number -1):]
 
     list_of_segmented_files = glob.glob( os.path.join( segmented_path , '*.tif') )
     list_of_segmented_files.sort(key=_natural_keys)
+    
+    if tracked_meshes != None:
+        list_of_segmented_files = list_of_segmented_files[(start_number -1):tracked_meshes]
+    else:
+        list_of_segmented_files = list_of_segmented_files[(start_number -1):]
 
     # get maximal global id
     max_global_id = 0
@@ -756,6 +766,7 @@ class PostProcessor():
                 
                 # calculate overlap area
                 if closest_element is not None: 
+                    element_two = self.mesh_two.get_element_with_frame_id(closest_element)
                     overlap_area = mesh.calculate_overlap_between_elements(element_one, element_two)
                     relative_overlap_forward = overlap_area/element_one.calculate_area()
                     relative_overlap_backward = overlap_area/element_two.calculate_area()
@@ -1357,7 +1368,10 @@ class PostProcessor():
 
 #         import pdb; pdb.set_trace()
         for element_one_id in self.preliminary_mappings:
-            current_maximal_global_id = max( self.mapped_ids )
+            if len(self.mapped_ids)>0:
+                current_maximal_global_id = max( self.mapped_ids )
+            else:
+                current_maximal_global_id = 0
             new_global_id = current_maximal_global_id + 1
  
             element_one = self.mesh_one.get_element_with_frame_id(element_one_id)
