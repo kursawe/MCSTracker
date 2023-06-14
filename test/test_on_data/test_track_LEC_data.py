@@ -86,7 +86,7 @@ class TestTrackLECData(unittest.TestCase):
                                 path.join(lec_data_path,'LECs_only','test_sequence_no_histoblasts'),
                                 path.join(dirname(__file__),'output','tracked_full_LEC_segmentation'))
 
-    def test_track_full_data_set_with_histoblasts(self): 
+    def xest_track_full_data_set_with_histoblasts(self): 
         sys.setrecursionlimit(40000)
         if not os.path.isdir(path.join(dirname(__file__),'output','tracked_full_LEC_segmentation_w_histoblasts/')):
             os.mkdir(path.join(dirname(__file__),'output','tracked_full_LEC_segmentation_w_histoblasts/'))
@@ -107,6 +107,28 @@ class TestTrackLECData(unittest.TestCase):
                                 path.join(lec_data_path,'with_histoblasts','raw_images'),
                                 path.join(lec_data_path,'with_histoblasts','test_sequence'),
                                 path.join(dirname(__file__),'output','tracked_full_LEC_segmenation_w_histoblasts'))
+ 
+    def test_track_further_difficult_dataset(self): 
+        sys.setrecursionlimit(40000)
+        if not os.path.isdir(path.join(dirname(__file__),'output','tracked_difficult_segmentation/')):
+            os.mkdir(path.join(dirname(__file__),'output','tracked_difficult_segmentation/'))
+                     
+        # I don't want my 'private' paths to be on github, so I put a line in my .bashrc file that reads
+        # export LECPATH="full_path_to_the_segmentation_files"
+        # this environment variable can now be read in as below. This has the benefit
+        # that every user can define their own path
+        lec_data_path = os.getenv('LECPATH')
+        tracking.track_and_write_sequence(path.join(lec_data_path,'difficult_segmentation','segmentations'), 
+                                         path.join(dirname(__file__),'output','tracked_difficult_segmentation/'),
+                                       use_geometry=True)
+                                        #  use_geometry=True, start_number=46)
+                                        #  use_geometry=True, start_number=46, number_meshes=3)
+                                        # use_geometry=True, number_meshes= 2)
+
+        tracking.plot_tracked_sequence(path.join(dirname(__file__),'output','tracked_difficult_segmentation/'), 
+                                path.join(lec_data_path,'difficult_segmentation','raw_images'),
+                                path.join(lec_data_path,'difficult_segmentation','segmentations'),
+                                path.join(dirname(__file__),'output','tracked_difficult_segmentation'))
  
     def xest_track_other_frames(self):
 
