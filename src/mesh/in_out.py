@@ -288,6 +288,7 @@ def read_data_and_create_raw_mesh( filename ):
 
 #     this_image = plt.imread(filename)
     this_image = cv2.imread( filename, flags = -1 )
+    this_image = np.array(this_image, dtype = 'int')
 
     contour_list, cell_ids = get_contour_list(this_image)
     

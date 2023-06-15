@@ -772,7 +772,7 @@ class PostProcessor():
                     relative_overlap_backward = overlap_area/element_two.calculate_area()
                     # add to prelminary mapping if possible
                     if (relative_overlap_backward > 0.5 and relative_overlap_forward > 0.5 and
-                        element_two.id_in_frame not in self.preliminary_mappings.values()):
+                        element_two.id_in_frame not in self.preliminary_mappings.values() and element_two.global_id is None):
                         self.extend_preliminary_mapping(element_one.id_in_frame, element_two.id_in_frame)
 
     def stable_fill_in_by_adjacency(self):
@@ -1366,7 +1366,6 @@ class PostProcessor():
         """add the preliminary mapping to the meshes, i.e. fill in the global ids
         for all mapped cells"""
 
-#         import pdb; pdb.set_trace()
         for element_one_id in self.preliminary_mappings:
             if len(self.mapped_ids)>0:
                 current_maximal_global_id = max( self.mapped_ids )
