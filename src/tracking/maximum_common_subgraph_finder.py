@@ -1542,7 +1542,7 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
             str1 = ' '.join(map(str, second_already_mapped_neighbours))
             str2 = ' '.join(map(str, mapped_neighbour_element_ids))
             is_ordered = str1 in str2 + ' ' + str2
-        else:
+        elif len(mapped_neighbour_element_ids) == 2 and len(second_already_mapped_neighbours) == 2:
             if self.network_one.has_edge(first_already_mapped_neighbours[0], first_already_mapped_neighbours[1]):
                 order_one = self.get_two_ordered_neighbour_ids_of_element( self.mesh_one, frame_id, already_mapped_elements )
                 order_one_images = [ id_map[this_id] for this_id in order_one ] 
@@ -1550,6 +1550,8 @@ class LocalisedSubgraphFinder(ConnectedMaximumCommonSubgraphFinder):
                 is_ordered = ( order_one_images == order_two )
             else:
                 is_ordered = True
+        else:
+            is_ordered = False
 
         return is_ordered   
 

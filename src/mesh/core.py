@@ -2413,10 +2413,10 @@ def calculate_overlap_between_elements(element_one, element_two):
     shapely_polygon_two = shapely.geometry.Polygon(np.array(list_of_polygon_corners_2))
     shapely_polygon_two = shapely.validation.make_valid(shapely_polygon_two)
  
-    import geopandas as gpd
-    p = gpd.GeoSeries(shapely_polygon_one)
-    p.plot()
-    plt.savefig('shapely_1.png')
+#     import geopandas as gpd
+#     p = gpd.GeoSeries(shapely_polygon_one)
+#     p.plot()
+#     plt.savefig('shapely_1.png')
 
 
     # p = gpd.GeoSeries(shapely_polygon_one)
