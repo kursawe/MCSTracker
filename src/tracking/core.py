@@ -32,14 +32,20 @@ def track(mesh_one, mesh_two, use_geometry = False):
     mapped_ids : the ids of elements that were identified in both meshes
     """
     
-    subgraph_finder = LocalisedSubgraphFinder(mesh_one, mesh_two, use_geometry)
-    subgraph_finder.find_maximum_common_subgraph()
-
-    post_processor = PostProcessor(mesh_one, mesh_two, subgraph_finder.largest_mappings, subgraph_finder.geometrically_tracked_list, use_geometry)
-    post_processor.index_global_ids_from_largest_mappings()
+    if len(mesh_two.elements)>0 and len(mesh_one.elements) > 0:
+        subgraph_finder = LocalisedSubgraphFinder(mesh_one, mesh_two, use_geometry)
+        subgraph_finder.find_maximum_common_subgraph()
     
-    post_processor.tidy_current_mapping()
-    mapped_ids = post_processor.post_process_with_data()
+        post_processor = PostProcessor(mesh_one, mesh_two, subgraph_finder.largest_mappings, subgraph_finder.geometrically_tracked_list, use_geometry)
+        post_processor.index_global_ids_from_largest_mappings()
+        
+        post_processor.tidy_current_mapping()
+        mapped_ids = post_processor.post_process_with_data()
+    else:
+        mapped_ids = []
+             # apply reduced_mcs flags:
+        for element in mesh_one.elements:
+            element.is_in_reduced_mcs_next = False
     
     return mapped_ids
 

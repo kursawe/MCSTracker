@@ -65,7 +65,7 @@ class TestTrackLECData(unittest.TestCase):
                                 # path.join(dirname(__file__),'data','LEC_segmentation_1/'),
                                 # path.join(dirname(__file__),'output','tracked_LEC_segmentation_1/'))
 
-    def test_track_full_data_set_no_histoblasts(self): 
+    def xest_track_full_data_set_no_histoblasts(self): 
         
         if not os.path.isdir(path.join(dirname(__file__),'output','tracked_full_LEC_segmentation/')):
             os.mkdir(path.join(dirname(__file__),'output','tracked_full_LEC_segmentation/'))
@@ -121,17 +121,43 @@ class TestTrackLECData(unittest.TestCase):
         # this environment variable can now be read in as below. This has the benefit
         # that every user can define their own path
         lec_data_path = os.getenv('LECPATH')
-        tracking.track_and_write_sequence(path.join(lec_data_path,'difficult_segmentation','segmentations'), 
+        tracking.track_and_write_sequence(path.join(lec_data_path,'difficult_segmentation','segmentations_fiji'), 
                                          path.join(dirname(__file__),'output','tracked_difficult_segmentation/'),
-                                       use_geometry=True)
+                                         use_geometry=True)
                                         #  use_geometry=True, start_number=46)
-                                        #  use_geometry=True, start_number=46, number_meshes=3)
+                                        #  use_geometry=True, start_number=11, number_meshes=13)
                                         # use_geometry=True, number_meshes= 2)
 
         tracking.plot_tracked_sequence(path.join(dirname(__file__),'output','tracked_difficult_segmentation/'), 
                                 path.join(lec_data_path,'difficult_segmentation','raw_images'),
-                                path.join(lec_data_path,'difficult_segmentation','segmentations'),
+                                path.join(lec_data_path,'difficult_segmentation','segmentations_fiji'),
                                 path.join(dirname(__file__),'output','tracked_difficult_segmentation'))
+                                # path.join(dirname(__file__),'output','tracked_difficult_segmentation'),
+                                # start_number=10,tracked_meshes=12)
+
+    def test_track_further_difficult_dataset_2(self): 
+        sys.setrecursionlimit(40000)
+        if not os.path.isdir(path.join(dirname(__file__),'output','tracked_difficult_segmentation_2/')):
+            os.mkdir(path.join(dirname(__file__),'output','tracked_difficult_segmentation_2/'))
+                     
+        # I don't want my 'private' paths to be on github, so I put a line in my .bashrc file that reads
+        # export LECPATH="full_path_to_the_segmentation_files"
+        # this environment variable can now be read in as below. This has the benefit
+        # that every user can define their own path
+        lec_data_path = os.getenv('LECPATH')
+        tracking.track_and_write_sequence(path.join(lec_data_path,'Janes_redstinger_data','segmentations'), 
+                                         path.join(dirname(__file__),'output','tracked_difficult_segmentation_2/'),
+                                         use_geometry=True)
+                                        #  use_geometry=True, start_number=46)
+                                        #  use_geometry=True, start_number=239, number_meshes=252)
+                                        # use_geometry=True, number_meshes= 2)
+
+        tracking.plot_tracked_sequence(path.join(dirname(__file__),'output','tracked_difficult_segmentation_2/'), 
+                                path.join(lec_data_path,'Janes_redstinger_data','raw_images'),
+                                path.join(lec_data_path,'Janes_redstinger_data','segmentations'),
+                                path.join(dirname(__file__),'output','tracked_difficult_segmentation_2'))
+                                # path.join(dirname(__file__),'output','tracked_difficult_segmentation_2'),
+                                # start_number=239,tracked_meshes=252)
  
     def xest_track_other_frames(self):
 

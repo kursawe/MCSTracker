@@ -380,11 +380,11 @@ class Mesh():
                     this_polygon.set_facecolor([1.0, 1.0, 1.0])
                 else:
                     if reduced_mcs_only: 
-                        if element.is_in_reduced_mcs_next and not element.is_in_reduced_mcs_previous:
+                        if hasattr(element, 'is_in_reduced_mcs_next') and element.is_in_reduced_mcs_next and not element.is_in_reduced_mcs_previous:
                             this_polygon.set_facecolor('yellow')
-                        elif element.is_in_reduced_mcs_previous and not element.is_in_reduced_mcs_next:
+                        elif element.is_in_reduced_mcs_previous and hasattr(element, 'is_in_reduced_mcs_next') and not element.is_in_reduced_mcs_next:
                             this_polygon.set_facecolor('blue')
-                        elif element.is_in_reduced_mcs_next and element.is_in_reduced_mcs_previous:
+                        elif hasattr(element, 'is_in_reduced_mcs_next') and element.is_in_reduced_mcs_next and element.is_in_reduced_mcs_previous:
                             this_polygon.set_facecolor('green')
                         else:
                             this_polygon.set_facecolor('white')

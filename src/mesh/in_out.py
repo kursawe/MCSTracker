@@ -267,6 +267,8 @@ def read_frame_from_data(filename):
     read_mesh.merge_short_edges(2)
     read_mesh.remove_boundary_elements()
     
+    # import pdb; pdb.set_trace()
+    
     return read_mesh
 
 def read_data_and_create_raw_mesh( filename ):
@@ -306,8 +308,6 @@ def read_data_and_create_raw_mesh( filename ):
         elements.append( Element( element_nodes, cell_ids[ cell_index ] ) )
         
     this_mesh = Mesh( nodes, elements )
-    
-
     
     return this_mesh 
 
